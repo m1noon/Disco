@@ -1,0 +1,43 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.minoon.disco.sample.SimpleActivity">
+
+    <ImageView
+        android:id="@+id/a_simple_iv_header"
+        android:layout_width="match_parent"
+        android:layout_height="240dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/disco"
+        />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/a_sample_rv_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        />
+
+
+    <Button
+        android:id="@+id/a_simple_btn_bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/holo_blue_light"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:text="Button"
+        />
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/a_simple_tb_toolbar"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        android:minHeight="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        />
+
+</RelativeLayout>
