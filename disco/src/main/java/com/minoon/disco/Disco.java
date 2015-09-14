@@ -29,7 +29,7 @@ public class Disco {
     public void setUp() {
         // TODO use saveState
         for (View v : scrollObserver.keySet()) {
-            scrollObserver.get(v).play(v, v, true);
+            scrollObserver.get(v).playChase(v, v, true);
         }
     }
 
@@ -49,7 +49,7 @@ public class Disco {
         }
     }
 
-    public void addDependency(View anchorView, View chaserView, Choreography choreography) {
+    public void addViewObserver(View anchorView, View chaserView, Choreography choreography) {
         if (scrollObserver.containsKey(anchorView)) {
             scrollObserver.get(anchorView).addChildDependency(chaserView, choreography);
         }
@@ -67,13 +67,13 @@ public class Disco {
 
     /* package */ void event(Enum e) {
         for (View v : scrollObserver.keySet()) {
-            scrollObserver.get(v).play(e, v);
+            scrollObserver.get(v).playEvent(e, v);
         }
     }
 
     /* package */ void onScroll(int dx, int dy, int x, int y) {
         for (View v : scrollObserver.keySet()) {
-            scrollObserver.get(v).onScroll(v, dx, dy, x, y);
+            scrollObserver.get(v).playScroll(v, dx, dy, x, y);
         }
     }
 }

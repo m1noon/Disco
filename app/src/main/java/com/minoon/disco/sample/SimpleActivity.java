@@ -71,7 +71,7 @@ public class SimpleActivity extends AppCompatActivity {
                 .multiplier(0.7f)
                 .end()
                 .build());
-        disco.addDependency(mHeaderImage, mHeaderImage, disco.getChoreographyBuilder()
+        disco.addViewObserver(mHeaderImage, mHeaderImage, disco.getChoreographyBuilder()
                         .atTag(ViewParam.TRANSLATION_Y, -200)
                         .alpha(0, 1)
                         .duration(600)
@@ -88,7 +88,7 @@ public class SimpleActivity extends AppCompatActivity {
                 .end()
                 .build());
 
-        disco.addDependency(mToolbar, mButton, disco.getChoreographyBuilder()
+        disco.addViewObserver(mToolbar, mButton, disco.getChoreographyBuilder()
                         .onChange(ViewParam.TRANSLATION_Y, 0, -200)
                         .alpha(0f, 1f)
                         .end()
