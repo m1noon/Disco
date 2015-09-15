@@ -16,7 +16,7 @@ public class TopActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_top);
+        setContentView(R.layout.a_top);
         ButterKnife.bind(this);
         Logger.setLoggable(true);
     }
@@ -46,5 +46,10 @@ public class TopActivity extends AppCompatActivity {
     @OnClick(R.id.a_top_btn_simple)
     public void onClickSimple(View view) {
         SimpleActivity.startActivity(this);
+    }
+
+    @OnClick(R.id.a_top_btn_collapsing_header)
+    public void onCliclCollapsingHeader(View view) {
+        CollapsingHeaderSampleActivity.startActivity(this);
     }
 }

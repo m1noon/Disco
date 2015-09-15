@@ -20,6 +20,10 @@
             android:name=".SimpleActivity"
             android:label="@string/title_activity_simple" >
         </activity>
+        <activity
+            android:name=".CollapsingHeaderSampleActivity"
+            android:label="@string/title_activity_collapsing_header_sample" >
+        </activity>
     </application>
 
 </manifest>

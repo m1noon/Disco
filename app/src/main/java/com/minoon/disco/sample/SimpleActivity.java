@@ -42,7 +42,7 @@ public class SimpleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_simple);
+        setContentView(R.layout.a_simple);
         ButterKnife.bind(this);
 
         // set up views
