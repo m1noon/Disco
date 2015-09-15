@@ -294,7 +294,10 @@ import java.util.Map;
         }
 
         /* package */ boolean transform(View view, int scrollPositionX, int scrollPositionY) {
-            final int range = Math.max(0, view.getBottom() - topOffset);
+            int range = Math.max(0, view.getBottom() - topOffset);
+            if (range == 0) {
+                range = Integer.MAX_VALUE;
+            }
             int targetScrollPosition = orientation == HORIZONTAL ? scrollPositionX : scrollPositionY;
             int offsetScrollPosition = Math.max(0, targetScrollPosition - offset);
             final float viewScrollPosition = - Math.min(offsetScrollPosition * multiplier, range);

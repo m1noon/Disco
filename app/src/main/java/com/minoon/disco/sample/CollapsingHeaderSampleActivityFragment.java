@@ -29,6 +29,8 @@ import butterknife.ButterKnife;
  */
 public class CollapsingHeaderSampleActivityFragment extends Fragment {
 
+    private static final String ARG_DISCO_STATE = "argDiscoState";
+
     @Bind(R.id.a_collapsing_header_iv_header)
     ImageView mHeaderImage;
     @Bind(R.id.a_collapsing_header_tb_toolbar)
@@ -37,6 +39,8 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
     RecyclerView mRecyclerView;
     @Bind(R.id.a_collapsing_header_fab_button)
     FloatingActionButton mFab;
+
+    Disco mDisco;
 
     public CollapsingHeaderSampleActivityFragment() {
     }
@@ -66,11 +70,11 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
             }
         });
 
-        Disco disco = new Disco();
-        disco.addScrollView(mRecyclerView);
+        mDisco = new Disco();
+        mDisco.addScrollView(mRecyclerView);
 
         // set up header image behavior
-        disco.addScrollObserver(mHeaderImage, disco.getChoreographyBuilder()
+        mDisco.addScrollObserver(mHeaderImage, mDisco.getChoreographyBuilder()
                         .onScrollVertical()
                         .multiplier(0.7f)
                         .alpha(1f, 0.7f)
@@ -79,13 +83,13 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
         );
 
         // set up fab behavior
-        disco.addScrollObserver(mFab, disco.getChoreographyBuilder()
+        mDisco.addScrollObserver(mFab, mDisco.getChoreographyBuilder()
                         .onScrollVertical()
                         .topOffset(dpToPixcel(getActivity(), 90))
                         .end()
                         .build()
         );
-        disco.addViewObserver(mFab, mFab, disco.getChoreographyBuilder()
+        mDisco.addViewObserver(mFab, mFab, mDisco.getChoreographyBuilder()
                         .atTag(ViewParam.TRANSLATION_Y, dpToPixcel(getActivity(), -150))
                         .scaleX(0, 1)
                         .scaleY(0, 1)
@@ -96,7 +100,7 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
         );
 
         // set up toolbar behavior
-        disco.addScrollObserver(mToolbar, new Choreography(disco) {
+        mDisco.addScrollObserver(mToolbar, new Choreography(mDisco) {
             @Override
             public boolean playChase(View anchorView, View chaserView) {
                 return false;
@@ -124,6 +128,11 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
                 return false;
             }
         });
+
+        if (savedInstanceState != null) {
+            mDisco.restoreInstanceState(savedInstanceState.getParcelable(ARG_DISCO_STATE));
+        }
+        mDisco.setUp();
     }
 
     private int dpToPixcel(Context context, int dp) {
@@ -134,5 +143,14 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
     private enum SampleEvent {
         BACK,
         FORWARD
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mDisco != null) {
+            outState.putParcelable(ARG_DISCO_STATE, mDisco.onSaveInstanceState());
+        }
     }
 }
