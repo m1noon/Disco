@@ -66,6 +66,9 @@ import java.util.Map;
         choreography.addEventAnimators(eventAnimators);
         choreography.setViewTransformer(transformer);
         choreography.setScrollTransformer(scrollTransformer);
+        if (viewTagAnimator != null) {
+            viewTagAnimator.setChoreography(choreography);
+        }
         choreography.setViewTagAnimator(viewTagAnimator);
         return choreography;
     }
@@ -87,6 +90,7 @@ import java.util.Map;
         private float toScaleY = NO_VALUE;
 
         private int offset = 0;
+        private int topOffset = 0;
         private float multiplier = 1;
 
         public ScrollTransformerBuilderImpl(int scrollOrientation) {
@@ -121,6 +125,12 @@ import java.util.Map;
         }
 
         @Override
+        public ScrollTransformerBuilder topOffset(int topOffset) {
+            this.topOffset = topOffset;
+            return this;
+        }
+
+        @Override
         public ScrollTransformerBuilder multiplier(float multiplier) {
             this.multiplier = multiplier;
             return this;
@@ -129,7 +139,7 @@ import java.util.Map;
         @Override
         public ChoreographyBuilder end() {
             ChoreographyBuilderImpl.this.scrollTransformer = new BasicChoreography.BasicScrollTransformer(
-                    scrollOrientation, multiplier, offset, fromAlpha, fromScaleX, fromScaleY, toAlpha, toScaleX, toScaleY
+                    scrollOrientation, multiplier, offset, topOffset, fromAlpha, fromScaleX, fromScaleY, toAlpha, toScaleX, toScaleY
             );
             return ChoreographyBuilderImpl.this;
         }
@@ -296,6 +306,9 @@ import java.util.Map;
 
         private long duration = 300;
 
+        private Enum onBackEvent;
+        private Enum onForwardEvent;
+
         public ViewTagAnimatorBuilderImpl(ViewParam viewParam, float boundary) {
             this.viewParam = viewParam;
             this.boundary = boundary;
@@ -343,10 +356,17 @@ import java.util.Map;
         }
 
         @Override
+        public ViewTagAnimatorBuilder notifyEvent(Enum beforeEvent, Enum afterEvent) {
+            this.onBackEvent = beforeEvent;
+            this.onForwardEvent = afterEvent;
+            return this;
+        }
+
+        @Override
         public ChoreographyBuilder end() {
             ChoreographyBuilderImpl.this.viewTagAnimator = new BasicChoreography.BasicViewTagAnimator(
                     viewParam, boundary, fromAlpha, fromTranslationX, fromTranslationY, fromScaleX, fromScaleY,
-                    toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, duration
+                    toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, duration, onBackEvent, onForwardEvent
             );
             return ChoreographyBuilderImpl.this;
         }

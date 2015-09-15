@@ -44,6 +44,8 @@ public interface ChoreographyBuilder {
 
         ScrollTransformerBuilder offset(int offset);
 
+        ScrollTransformerBuilder topOffset(int offset);
+
         ScrollTransformerBuilder multiplier(float multiplier);
 
         ChoreographyBuilder end();
@@ -77,6 +79,8 @@ public interface ChoreographyBuilder {
         ViewTagAnimatorBuilder scaleY(float from, float to);
 
         ViewTagAnimatorBuilder duration(long duration);
+
+        ViewTagAnimatorBuilder notifyEvent(Enum beforeEvent, Enum afterEvent);
 
         ChoreographyBuilder end();
     }

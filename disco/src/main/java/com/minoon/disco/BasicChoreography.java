@@ -207,7 +207,11 @@ import java.util.Map;
 
         private float prevValue;
 
-        public BasicViewTagAnimator(ViewParam param, float bounds, float fromAlpha, float fromTranslationX, float fromTranslationY, float fromScaleX, float fromScaleY, float toAlpha, float toTranslationX, float toTranslationY, float toScaleX, float toScaleY, long duration) {
+        private Choreography choreography;
+        private Enum onBackEvent;
+        private Enum onForwardEvent;
+
+        public BasicViewTagAnimator(ViewParam param, float bounds, float fromAlpha, float fromTranslationX, float fromTranslationY, float fromScaleX, float fromScaleY, float toAlpha, float toTranslationX, float toTranslationY, float toScaleX, float toScaleY, long duration, Enum onBackEvent, Enum onForwardEvent) {
             this.param = param;
             this.bounds = bounds;
             this.fromAlpha = fromAlpha;
@@ -221,6 +225,12 @@ import java.util.Map;
             this.toScaleX = toScaleX;
             this.toScaleY = toScaleY;
             this.duration = duration;
+            this.onBackEvent = onBackEvent;
+            this.onForwardEvent = onForwardEvent;
+        }
+
+        /* package */ void setChoreography(Choreography choreography) {
+            this.choreography = choreography;
         }
 
         boolean animateIfNeed(View anchorView, View chaserView) {
@@ -228,14 +238,20 @@ import java.util.Map;
             boolean changed = false;
             Logger.d(TAG, "animateIfNeed. prevValue='%s', value='%s', bounds='%s'", prevValue, value, bounds);
 
-            if (prevValue < bounds && value > bounds) {
+            if (prevValue <= bounds && value > bounds) {
                 changed = true;
                 startAnimation(chaserView, toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, duration);
+                if (onForwardEvent != null) {
+                    choreography.notifyEvent(onForwardEvent);
+                }
             }
 
-            if (prevValue > bounds && value < bounds) {
+            if (prevValue >= bounds && value < bounds) {
                 changed = true;
                 startAnimation(chaserView, fromAlpha, fromTranslationX, fromTranslationY, fromScaleX, fromScaleY, duration);
+                if (onBackEvent != null) {
+                    choreography.notifyEvent(onBackEvent);
+                }
             }
 
             prevValue = value;
@@ -251,6 +267,7 @@ import java.util.Map;
         private int orientation;
         private float multiplier;
         private int offset;
+        private int topOffset;
 
         private float fromAlpha;
         private float fromScaleX;
@@ -263,10 +280,11 @@ import java.util.Map;
         private float prevProgress;
 
 
-        public BasicScrollTransformer(int orientation, float multiplier, int offset, float fromAlpha, float fromScaleX, float fromScaleY, float toAlpha, float toScaleX, float toScaleY) {
+        public BasicScrollTransformer(int orientation, float multiplier, int offset, int topOffset, float fromAlpha, float fromScaleX, float fromScaleY, float toAlpha, float toScaleX, float toScaleY) {
             this.orientation = orientation;
             this.multiplier = multiplier;
             this.offset = offset;
+            this.topOffset = topOffset;
             this.fromAlpha = fromAlpha;
             this.fromScaleX = fromScaleX;
             this.fromScaleY = fromScaleY;
@@ -276,9 +294,10 @@ import java.util.Map;
         }
 
         /* package */ boolean transform(View view, int scrollPositionX, int scrollPositionY) {
+            final int range = Math.max(0, view.getBottom() - topOffset);
             int targetScrollPosition = orientation == HORIZONTAL ? scrollPositionX : scrollPositionY;
             int offsetScrollPosition = Math.max(0, targetScrollPosition - offset);
-            final float viewScrollPosition = -offsetScrollPosition * multiplier;
+            final float viewScrollPosition = - Math.min(offsetScrollPosition * multiplier, range);
             switch (orientation) {
                 case HORIZONTAL:
                     view.setTranslationX(viewScrollPosition);
@@ -287,7 +306,6 @@ import java.util.Map;
                     view.setTranslationY(viewScrollPosition);
                     break;
             }
-            final int range = view.getBottom();
             final float progress = Math.max(0, Math.min(1, Math.abs(viewScrollPosition / (float) range)));
             Logger.d(TAG, "scrollTransform. x='%s', y='%s', range='%s', progress='%s'", scrollPositionX, scrollPositionY, range, progress);
             if (fromAlpha != NO_VALUE && toAlpha != NO_VALUE) {
