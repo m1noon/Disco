@@ -6,6 +6,12 @@ import android.os.Parcelable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
+import com.minoon.disco.choreography.ScrollChoreography;
+import com.minoon.disco.choreography.ViewChaseChoreography;
+import com.minoon.disco.choreography.builder.ChoreographyBuilderProvider;
+import com.minoon.disco.choreography.builder.ScrollChoreographyBuilder;
+import com.minoon.disco.choreography.builder.ViewChaseChoreographyBuilder;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,8 +31,12 @@ public class Disco {
         recyclerMap = new HashMap<>();
     }
 
-    public ChoreographyBuilder getChoreographyBuilder() {
-        return new ChoreographyBuilderImpl(this);
+    public ScrollChoreographyBuilder getScrollChoreographyBuilder() {
+        return ChoreographyBuilderProvider.getScrollChoreographyBuilder(this);
+    }
+
+    public ViewChaseChoreographyBuilder getViewChaseChoreographyBuilder() {
+        return ChoreographyBuilderProvider.getViewChaseChoreographyBuilder(this);
     }
 
     public void setUp() {
@@ -65,7 +75,7 @@ public class Disco {
         }
     }
 
-    public void addViewObserver(View anchorView, View chaserView, Choreography choreography) {
+    public void addViewObserver(View anchorView, View chaserView, ViewChaseChoreography choreography) {
         if (scrollObserver.containsKey(anchorView)) {
             scrollObserver.get(anchorView).addChildDependency(chaserView, choreography);
         }
@@ -75,13 +85,13 @@ public class Disco {
         }
     }
 
-    public void addScrollObserver(View view, Choreography choreography) {
+    public void addScrollObserver(View view, ScrollChoreography choreography) {
         ChoreographyChain chain = new ChoreographyChain(choreography);
         scrollObserver.put(view, chain);
     }
 
 
-    /* package */ void event(Enum e) {
+    public void event(Enum e) {
         for (View v : scrollObserver.keySet()) {
             scrollObserver.get(v).playEvent(e, v);
         }

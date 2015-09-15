@@ -1,15 +1,23 @@
-package com.minoon.disco;
+package com.minoon.disco.choreography.builder;
 
 import android.view.View;
 import android.view.ViewPropertyAnimator;
+
+import com.minoon.disco.Disco;
+import com.minoon.disco.Logger;
+import com.minoon.disco.ViewParam;
+import com.minoon.disco.choreography.ScrollChoreography;
+import com.minoon.disco.choreography.ViewChaseChoreography;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * A Basic implementation of Choreography.
+ *
  * Created by a13587 on 15/09/11.
  */
-/* package */ class BasicChoreography extends Choreography {
+/* package */ class BasicChoreography implements ScrollChoreography, ViewChaseChoreography {
     private static final String TAG = Logger.createTag(BasicChoreography.class.getSimpleName());
     /* package */ static final float NO_VALUE = Float.MIN_VALUE;
 
@@ -21,8 +29,7 @@ import java.util.Map;
 
     BasicScrollTransformer scrollTransformer;
 
-    public BasicChoreography(Disco disco) {
-        super(disco);
+    public BasicChoreography() {
         eventAnimator = new HashMap<>();
     }
 
@@ -207,9 +214,10 @@ import java.util.Map;
 
         private float prevValue;
 
-        private Choreography choreography;
         private Enum onBackEvent;
         private Enum onForwardEvent;
+
+        private Disco disco;
 
         public BasicViewTagAnimator(ViewParam param, float bounds, float fromAlpha, float fromTranslationX, float fromTranslationY, float fromScaleX, float fromScaleY, float toAlpha, float toTranslationX, float toTranslationY, float toScaleX, float toScaleY, long duration, Enum onBackEvent, Enum onForwardEvent) {
             this.param = param;
@@ -229,8 +237,8 @@ import java.util.Map;
             this.onForwardEvent = onForwardEvent;
         }
 
-        /* package */ void setChoreography(Choreography choreography) {
-            this.choreography = choreography;
+        /* package */ void setDisco(Disco disco) {
+            this.disco = disco;
         }
 
         boolean animateIfNeed(View anchorView, View chaserView) {
@@ -242,7 +250,7 @@ import java.util.Map;
                 changed = true;
                 startAnimation(chaserView, toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, duration);
                 if (onForwardEvent != null) {
-                    choreography.notifyEvent(onForwardEvent);
+                    disco.event(onForwardEvent);
                 }
             }
 
@@ -250,7 +258,7 @@ import java.util.Map;
                 changed = true;
                 startAnimation(chaserView, fromAlpha, fromTranslationX, fromTranslationY, fromScaleX, fromScaleY, duration);
                 if (onBackEvent != null) {
-                    choreography.notifyEvent(onBackEvent);
+                    disco.event(onBackEvent);
                 }
             }
 

@@ -8,34 +8,34 @@ import android.view.View;
 public enum ViewParam {
     ALPHA {
         @Override
-        float getValue(View view) {
+        public float getValue(View view) {
             return view == null ? 0 : view.getAlpha();
         }
     },
     TRANSLATION_X {
         @Override
-        float getValue(View view) {
+        public float getValue(View view) {
             return view == null ? 0 : view.getTranslationX();
         }
     },
     TRANSLATION_Y {
         @Override
-        float getValue(View view) {
+        public float getValue(View view) {
             return view == null ? 0 : view.getTranslationY();
         }
     },
     SCALE_X {
         @Override
-        float getValue(View view) {
+        public float getValue(View view) {
             return view == null ? 0 : view.getScaleX();
         }
     },
     SCALE_Y {
         @Override
-        float getValue(View view) {
+        public float getValue(View view) {
             return view == null ? 0 : view.getScaleY();
         }
     };
 
-    /* package */ abstract float getValue(View view);
+    public abstract float getValue(View view);
 }

@@ -16,9 +16,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.minoon.disco.Choreography;
 import com.minoon.disco.Disco;
 import com.minoon.disco.ViewParam;
+import com.minoon.disco.choreography.ScrollChoreography;
 import com.minoon.disco.sample.adapter.SampleAdapter;
 
 import butterknife.Bind;
@@ -74,7 +74,7 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
         mDisco.addScrollView(mRecyclerView);
 
         // set up header image behavior
-        mDisco.addScrollObserver(mHeaderImage, mDisco.getChoreographyBuilder()
+        mDisco.addScrollObserver(mHeaderImage, mDisco.getScrollChoreographyBuilder()
                         .onScrollVertical()
                         .multiplier(0.7f)
                         .alpha(1f, 0.7f)
@@ -83,13 +83,13 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
         );
 
         // set up fab behavior
-        mDisco.addScrollObserver(mFab, mDisco.getChoreographyBuilder()
+        mDisco.addScrollObserver(mFab, mDisco.getScrollChoreographyBuilder()
                         .onScrollVertical()
                         .topOffset(dpToPixcel(getActivity(), 90))
                         .end()
                         .build()
         );
-        mDisco.addViewObserver(mFab, mFab, mDisco.getChoreographyBuilder()
+        mDisco.addViewObserver(mFab, mFab, mDisco.getViewChaseChoreographyBuilder()
                         .atTag(ViewParam.TRANSLATION_Y, dpToPixcel(getActivity(), -150))
                         .scaleX(0, 1)
                         .scaleY(0, 1)
@@ -100,11 +100,7 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
         );
 
         // set up toolbar behavior
-        mDisco.addScrollObserver(mToolbar, new Choreography(mDisco) {
-            @Override
-            public boolean playChase(View anchorView, View chaserView) {
-                return false;
-            }
+        mDisco.addScrollObserver(mToolbar, new ScrollChoreography() {
 
             @Override
             public long playEvent(Enum e, View chaserView) {

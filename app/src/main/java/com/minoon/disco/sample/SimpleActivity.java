@@ -64,14 +64,14 @@ public class SimpleActivity extends AppCompatActivity {
         Disco disco = new Disco();
         disco.addScrollView(mRecyclerView);
 
-        disco.addScrollObserver(mHeaderImage, disco.getChoreographyBuilder()
+        disco.addScrollObserver(mHeaderImage, disco.getScrollChoreographyBuilder()
                 .onScrollVertical()
                 .scaleX(1f, 0.8f)
                 .scaleY(1f, 0.8f)
                 .multiplier(0.7f)
                 .end()
                 .build());
-        disco.addViewObserver(mHeaderImage, mHeaderImage, disco.getChoreographyBuilder()
+        disco.addViewObserver(mHeaderImage, mHeaderImage, disco.getViewChaseChoreographyBuilder()
                         .atTag(ViewParam.TRANSLATION_Y, -200)
                         .alpha(0, 1)
                         .duration(600)
@@ -79,7 +79,7 @@ public class SimpleActivity extends AppCompatActivity {
                         .build()
         );
 
-        disco.addScrollObserver(mToolbar, disco.getChoreographyBuilder()
+        disco.addScrollObserver(mToolbar, disco.getScrollChoreographyBuilder()
                 .at(Event.START_SCROLL_BACK)
                 .translationY(0)
                 .end()
@@ -88,7 +88,7 @@ public class SimpleActivity extends AppCompatActivity {
                 .end()
                 .build());
 
-        disco.addViewObserver(mToolbar, mButton, disco.getChoreographyBuilder()
+        disco.addViewObserver(mToolbar, mButton, disco.getViewChaseChoreographyBuilder()
                         .onChange(ViewParam.TRANSLATION_Y, 0, -200)
                         .alpha(0f, 1f)
                         .end()

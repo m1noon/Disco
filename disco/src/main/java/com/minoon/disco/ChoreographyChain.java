@@ -3,6 +3,10 @@ package com.minoon.disco;
 import android.animation.ValueAnimator;
 import android.view.View;
 
+import com.minoon.disco.choreography.Choreography;
+import com.minoon.disco.choreography.ScrollChoreography;
+import com.minoon.disco.choreography.ViewChaseChoreography;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,19 +21,25 @@ import java.util.Map;
 /* package */ class ChoreographyChain {
     private static final String TAG = Logger.createTag(ChoreographyChain.class.getSimpleName());
 
-    private final List<Choreography> myChoreography;
+    private final List<ScrollChoreography> myScrollChoreography;
+
+    private final List<ViewChaseChoreography> myChoreography;
 
     private final Map<View, ChoreographyChain> childChoreography;
 
     /**
      * Constructor
      *
-     * @param choreography
      */
-    /* package */ ChoreographyChain(Choreography choreography) {
+    /* package */ ChoreographyChain() {
         childChoreography = new HashMap<>();
         myChoreography = new ArrayList<>();
-        myChoreography.add(choreography);
+        myScrollChoreography = new ArrayList<>();
+    }
+
+    /* package */ ChoreographyChain(ScrollChoreography scrollChoreography) {
+        this();
+        myScrollChoreography.add(scrollChoreography);
     }
 
     /**
@@ -43,7 +53,7 @@ import java.util.Map;
      */
     /* package */ void playScroll(View chaserView, int dx, int dy, int x, int y) {
         boolean changed = false;
-        for (Choreography c : myChoreography) {
+        for (ScrollChoreography c : myScrollChoreography) {
             changed = changed || c.playScroll(chaserView, dx, dy, x, y);
         }
 
@@ -73,7 +83,7 @@ import java.util.Map;
      */
     /* package */ void playChase(View anchorView, View chaserView, boolean force) {
         boolean changed = false;
-        for (Choreography c : myChoreography) {
+        for (ViewChaseChoreography c : myChoreography) {
             changed = changed || c.playChase(anchorView, chaserView);
         }
 
@@ -93,6 +103,9 @@ import java.util.Map;
     /* package */ void playEvent(Enum event, final View chaserView) {
         long duration = 0;
         for (Choreography c : myChoreography) {
+            duration = Math.max(duration, c.playEvent(event, chaserView));
+        }
+        for (Choreography c : myScrollChoreography) {
             duration = Math.max(duration, c.playEvent(event, chaserView));
         }
         for (View v : childChoreography.keySet()) {
@@ -121,11 +134,28 @@ import java.util.Map;
      * @param childView
      * @param choreography
      */
-    /* package */ void addChildDependency(View childView, Choreography choreography) {
+    /* package */ void addChildDependency(View childView, ViewChaseChoreography choreography) {
         if (childChoreography.containsKey(childView)) {
             childChoreography.get(childView).addMyChoreography(choreography);
         } else {
-            ChoreographyChain childChain = new ChoreographyChain(choreography);
+            ChoreographyChain childChain = new ChoreographyChain();
+            childChain.addMyChoreography(choreography);
+            childChoreography.put(childView, childChain);
+        }
+    }
+
+    /**
+     * add as child which depends on their own.
+     *
+     * @param childView
+     * @param choreography
+     */
+    /* package */ void addChildDependency(View childView, ScrollChoreography choreography) {
+        if (childChoreography.containsKey(childView)) {
+            childChoreography.get(childView).addMyChoreography(choreography);
+        } else {
+            ChoreographyChain childChain = new ChoreographyChain();
+
             childChoreography.put(childView, childChain);
         }
     }
@@ -137,7 +167,7 @@ import java.util.Map;
      * @param childView
      * @param choreography
      */
-    /* package */ void maybeAddDependency(View anchorView, View childView, Choreography choreography) {
+    /* package */ void maybeAddDependency(View anchorView, View childView, ViewChaseChoreography choreography) {
         // if the child map has a anchor view, add grandchild view with choreography.
         if (childChoreography.containsKey(anchorView)) {
             ChoreographyChain child = childChoreography.get(anchorView);
@@ -151,9 +181,15 @@ import java.util.Map;
         }
     }
 
-    private void addMyChoreography(Choreography choreography) {
+    private void addMyChoreography(ViewChaseChoreography choreography) {
         if (choreography != null && !myChoreography.contains(choreography)) {
             myChoreography.add(choreography);
+        }
+    }
+
+    private void addMyChoreography(ScrollChoreography choreography) {
+        if (choreography != null && !myChoreography.contains(choreography)) {
+            myScrollChoreography.add(choreography);
         }
     }
 
