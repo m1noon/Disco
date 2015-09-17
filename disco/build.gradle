@@ -36,6 +36,10 @@ buildscript {
     }
 }
 
+// for maven
+version = VERSION_NAME
+group = GROUP
+
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 
