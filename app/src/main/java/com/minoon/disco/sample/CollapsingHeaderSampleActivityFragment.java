@@ -71,7 +71,7 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
             @Override
             public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
                 if (parent.getChildAdapterPosition(view) == 0) {
-                    outRect.top = dpToPixcel(view.getContext(), 240);
+                    outRect.top = dpToPixcel(view.getContext(), 300);
                 }
             }
         });

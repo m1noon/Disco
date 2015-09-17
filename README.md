@@ -1,6 +1,10 @@
 # Disco
 scroll animation library for Android
 
+# Image
+![demo_simple]
+![demo_complex]
+
 # How To Use
 ```
 Disco disco = new Disco();
@@ -40,3 +44,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+
+[demo_simple]:https://github.com/m1noon/Disco/blob/master/art/demo_simple.gif
+[demo_complex]:https://github.com/m1noon/Disco/blob/master/art/demo_complex.gif
