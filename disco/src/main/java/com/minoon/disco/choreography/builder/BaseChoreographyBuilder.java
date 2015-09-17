@@ -4,6 +4,7 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
 import com.minoon.disco.Disco;
+import com.minoon.disco.choreography.Choreography;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,11 +12,11 @@ import java.util.Map;
 /**
  * Created by a13587 on 15/09/15.
  */
-public abstract class BaseChoreographyBuilder<T> {
+public abstract class BaseChoreographyBuilder<B extends BaseChoreographyBuilder<?, C>, C extends Choreography> {
     private static final String TAG = BaseChoreographyBuilder.class.getSimpleName();
-    /* package */ static final float NO_VALUE = Float.MIN_VALUE;
+    /* package */ static final float NO_VALUE = BasicChoreography.NO_VALUE;
 
-    private final Map<Enum, BasicChoreography.BasicAnimator> eventAnimators;
+    protected final Map<Enum, BasicChoreography.Animator> eventAnimators;
 
     protected Disco disco;
 
@@ -24,7 +25,7 @@ public abstract class BaseChoreographyBuilder<T> {
         this.disco = disco;
     }
 
-    protected abstract T getBuilderInstance();
+    protected abstract C build();
 
     public EventAnimationBuilder at(Enum e) {
         return new EventAnimationBuilder(e);
@@ -42,7 +43,7 @@ public abstract class BaseChoreographyBuilder<T> {
         private long duration = 300;
         private Interpolator interpolator = new LinearInterpolator();
 
-        public EventAnimationBuilder(Enum event) {
+        private EventAnimationBuilder(Enum event) {
             this.event = event;
         }
 
@@ -81,11 +82,15 @@ public abstract class BaseChoreographyBuilder<T> {
             return this;
         }
 
-        public T end() {
-            BaseChoreographyBuilder.this.eventAnimators.put(event, new BasicChoreography.BasicAnimator(
+        public B end() {
+            BaseChoreographyBuilder.this.eventAnimators.put(event, new BasicChoreography.Animator(
                     alpha, translationX, translationY, scaleX, scaleY, duration, interpolator
             ));
-            return BaseChoreographyBuilder.this.getBuilderInstance();
+            return (B) BaseChoreographyBuilder.this;
+        }
+
+        public C build() {
+            return end().build();
         }
     }
 }

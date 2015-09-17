@@ -1,87 +1,58 @@
 package com.minoon.disco.choreography.builder;
 
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
-
 import com.minoon.disco.Disco;
 import com.minoon.disco.choreography.ScrollChoreography;
 
 /**
  * Created by a13587 on 15/09/15.
  */
-public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollChoreographyBuilder> {
+public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollChoreographyBuilder, ScrollChoreography> {
     private static final String TAG = ScrollChoreographyBuilder.class.getSimpleName();
 
-    private BasicChoreography.BasicScrollTransformer scrollTransformer;
+    private BasicChoreography.ScrollTransformer scrollTransformer;
+
+    private BasicChoreography.ScrollTagAnimator scrollTagAnimator;
+
+    private int orientation = BasicChoreography.VERTICAL;
 
     public ScrollChoreographyBuilder(Disco disco) {
         super(disco);
     }
 
-    @Override
-    protected ScrollChoreographyBuilder getBuilderInstance() {
+    public ScrollChoreographyBuilder horizontal() {
+        this.orientation = BasicChoreography.HORIZONTAL;
         return this;
     }
 
-    public ScrollTransformerBuilder onScrollVertical() {
-        return new ScrollTransformerBuilder(BasicChoreography.BasicScrollTransformer.VERTICAL);
+    public ScrollTransformerBuilder onScroll() {
+        return new ScrollTransformerBuilder(orientation);
     }
 
-
-    public ScrollTransformerBuilder onScrollHorizontal() {
-        return new ScrollTransformerBuilder(BasicChoreography.BasicScrollTransformer.HORIZONTAL);
+    public ScrollTagAnimatorBuilder tag(int scrollPosition) {
+        return new ScrollTagAnimatorBuilder(scrollPosition);
     }
 
-
+    @Override
     public ScrollChoreography build() {
         BasicChoreography choreography = new BasicChoreography();
+        choreography.addEventAnimators(eventAnimators);
         choreography.setScrollTransformer(scrollTransformer);
+        choreography.setScrollTagAnimator(scrollTagAnimator);
         return choreography;
     }
 
-    public final class ScrollTransformerBuilder {
+    public final class ScrollTransformerBuilder extends BaseTransformerBuilder<ScrollTransformerBuilder> {
         // for scroll transformation
         private int scrollOrientation;
 
         private boolean stopAtBoder;
 
-        private float fromAlpha = NO_VALUE;
-        private float fromScaleX = NO_VALUE;
-        private float fromScaleY = NO_VALUE;
-        private TranslatePosition fromTranslationX;
-        private TranslatePosition fromTranslationY;
-
-        private float toAlpha = NO_VALUE;
-        private float toScaleX = NO_VALUE;
-        private float toScaleY = NO_VALUE;
-        private TranslatePosition toTranslationX;
-        private TranslatePosition toTranslationY;
-        private Interpolator interpolator = new LinearInterpolator();
-
         private int offset = 0;
         private int topOffset = 0;
         private float multiplier = 1;
 
-        public ScrollTransformerBuilder(int scrollOrientation) {
+        private ScrollTransformerBuilder(int scrollOrientation) {
             this.scrollOrientation = scrollOrientation;
-        }
-
-        public ScrollTransformerBuilder alpha(float from, float to) {
-            fromAlpha = from;
-            toAlpha = to;
-            return this;
-        }
-
-        public ScrollTransformerBuilder scaleX(float from, float to) {
-            fromScaleX = from;
-            toScaleX = to;
-            return this;
-        }
-
-        public ScrollTransformerBuilder scaleY(float from, float to) {
-            fromScaleY = from;
-            toScaleY = to;
-            return this;
         }
 
         public ScrollTransformerBuilder offset(int offset) {
@@ -99,46 +70,52 @@ public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollCho
             return this;
         }
 
-        public ScrollTransformerBuilder translationY(Position from, Position to) {
-            fromTranslationY = new TranslatePosition(from, 0);
-            toTranslationY = new TranslatePosition(to, 0);
-            return this;
-        }
-
-        public ScrollTransformerBuilder translationY(Position from, float fromOffset, Position to, float toOffset) {
-            fromTranslationY = new TranslatePosition(from, fromOffset);
-            toTranslationY = new TranslatePosition(to, toOffset);
-            return this;
-        }
-
-        public ScrollTransformerBuilder translationX(Position from, Position to) {
-            fromTranslationX = new TranslatePosition(from, 0);
-            toTranslationX = new TranslatePosition(to, 0);
-            return this;
-        }
-
-        public ScrollTransformerBuilder translationX(Position from, float fromOffset, Position to, float toOffset) {
-            fromTranslationX = new TranslatePosition(from, fromOffset);
-            toTranslationX = new TranslatePosition(to, toOffset);
-            return this;
-        }
-
         public ScrollTransformerBuilder multiplier(float multiplier) {
             this.multiplier = multiplier;
             return this;
         }
 
-        public ScrollTransformerBuilder interpolator(Interpolator interpolator) {
-            this.interpolator = interpolator;
+        public ScrollChoreographyBuilder end() {
+            ScrollChoreographyBuilder.this.scrollTransformer = new BasicChoreography.ScrollTransformer(
+                    buildTransformer(), scrollOrientation, multiplier, offset, topOffset, stopAtBoder
+            );
+            return ScrollChoreographyBuilder.this;
+        }
+
+        public ScrollChoreography build() {
+            return end().build();
+        }
+    }
+
+
+    public final class ScrollTagAnimatorBuilder extends BaseAnimatorBuilder<ScrollTagAnimatorBuilder> {
+        private final float boundary;
+
+        private Enum onBackEvent;
+        private Enum onForwardEvent;
+
+        private ScrollTagAnimatorBuilder(float boundary) {
+            this.boundary = boundary;
+        }
+
+        public ScrollTagAnimatorBuilder notifyEvent(Enum beforeEvent, Enum afterEvent) {
+            this.onBackEvent = beforeEvent;
+            this.onForwardEvent = afterEvent;
             return this;
         }
 
         public ScrollChoreographyBuilder end() {
-            ScrollChoreographyBuilder.this.scrollTransformer = new BasicChoreography.BasicScrollTransformer(
-                    scrollOrientation, multiplier, offset, topOffset, fromAlpha, fromScaleX, fromScaleY, fromTranslationX, fromTranslationY,
-                    toAlpha, toScaleX, toScaleY, stopAtBoder, toTranslationX, toTranslationY, interpolator
+            ScrollChoreographyBuilder.this.scrollTagAnimator = new BasicChoreography.ScrollTagAnimator(
+                    orientation, boundary,
+                    buildFromAnimator(),
+                    buildToAnimator(),
+                    disco, onBackEvent, onForwardEvent
             );
             return ScrollChoreographyBuilder.this;
+        }
+
+        public ScrollChoreography build() {
+            return end().build();
         }
     }
 

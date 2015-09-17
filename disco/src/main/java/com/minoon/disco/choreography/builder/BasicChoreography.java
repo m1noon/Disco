@@ -22,13 +22,18 @@ import java.util.Map;
     private static final String TAG = Logger.createTag(BasicChoreography.class.getSimpleName());
     /* package */ static final float NO_VALUE = Float.MIN_VALUE;
 
-    Map<Enum, BasicAnimator> eventAnimator;
+    /* package */ static final int HORIZONTAL = 0;
+    /* package */ static final int VERTICAL = 1;
 
-    BasicViewTransformer viewTransformer;
+    Map<Enum, Animator> eventAnimator;
 
-    BasicViewTagAnimator viewTagAnimator;
+    ViewTransformer viewTransformer;
 
-    BasicScrollTransformer scrollTransformer;
+    ViewTagAnimator viewTagAnimator;
+
+    ScrollTransformer scrollTransformer;
+
+    ScrollTagAnimator scrollTagAnimator;
 
     public BasicChoreography() {
         eventAnimator = new HashMap<>();
@@ -42,7 +47,7 @@ import java.util.Map;
         }
 
         if (viewTagAnimator != null) {
-            changed = changed || viewTagAnimator.animateIfNeed(anchorView, chaserView);
+            changed = viewTagAnimator.animateIfNeed(anchorView, chaserView) || changed;
         }
 
         return changed;
@@ -50,7 +55,7 @@ import java.util.Map;
 
     @Override
     public long playEvent(Enum e, View chaserView) {
-        BasicAnimator animator = eventAnimator.get(e);
+        Animator animator = eventAnimator.get(e);
         if (animator != null) {
             animator.animate(chaserView);
             return animator.duration;
@@ -60,55 +65,42 @@ import java.util.Map;
 
     @Override
     public boolean playScroll(View chaserView, int dx, int dy, int x, int y) {
+        boolean changed = false;
         if (scrollTransformer != null) {
-            return scrollTransformer.transform(chaserView, x, y);
+            changed = scrollTransformer.transform(chaserView, x, y);
         }
-        return false;
+
+        if (scrollTagAnimator != null) {
+            changed = scrollTagAnimator.animateIfNeed(chaserView, x, y) || changed;
+        }
+
+        return changed;
     }
 
 
-    /* package */ void setScrollTransformer(BasicScrollTransformer transformer) {
+    /* package */ void setScrollTransformer(ScrollTransformer transformer) {
         this.scrollTransformer = transformer;
     }
 
-    /* package */ void addEventAnimators(Map<Enum, BasicAnimator> animators) {
+    /* package */ void setScrollTagAnimator(ScrollTagAnimator tagAnimator) {
+        this.scrollTagAnimator = tagAnimator;
+    }
+
+    /* package */ void addEventAnimators(Map<Enum, Animator> animators) {
         if (animators != null && animators.size() > 0) {
             eventAnimator.putAll(animators);
         }
     }
 
-    /* package */ void setViewTransformer(BasicViewTransformer viewTransformer) {
+    /* package */ void setViewTransformer(ViewTransformer viewTransformer) {
         this.viewTransformer = viewTransformer;
     }
 
-    /* package */ void setViewTagAnimator(BasicViewTagAnimator viewTagAnimator) {
+    /* package */ void setViewTagAnimator(ViewTagAnimator viewTagAnimator) {
         this.viewTagAnimator = viewTagAnimator;
     }
 
-    private static void startAnimation(View view, float alpha, float translationX, float translationY, float scaleX, float scaleY, long duration, Interpolator interpolator) {
-        view.animate().cancel();
-        ViewPropertyAnimator animator = view.animate();
-        if (alpha != NO_VALUE) {
-            animator.alpha(alpha);
-        }
-        if (translationX != NO_VALUE) {
-            animator.translationX(translationX);
-        }
-        if (translationY != NO_VALUE) {
-            animator.translationY(translationY);
-        }
-        if (scaleX != NO_VALUE) {
-            animator.scaleX(scaleX);
-        }
-        if (scaleY != NO_VALUE) {
-            animator.scaleY(scaleY);
-        }
-        animator.setDuration(duration);
-        animator.setInterpolator(interpolator);
-        animator.start();
-    }
-
-    /* package */ static class BasicAnimator {
+    /* package */ static class Animator {
         private final float alpha;
         private final float translationX;
         private final float translationY;
@@ -117,7 +109,7 @@ import java.util.Map;
         private final long duration;
         private final Interpolator interpolator;
 
-        public BasicAnimator(float alpha, float translationX, float translationY, float scaleX, float scaleY, long duration, Interpolator interpolator) {
+        public Animator(float alpha, float translationX, float translationY, float scaleX, float scaleY, long duration, Interpolator interpolator) {
             this.alpha = alpha;
             this.translationX = translationX;
             this.translationY = translationY;
@@ -128,17 +120,129 @@ import java.util.Map;
         }
 
         public void animate(View view) {
-            startAnimation(view, alpha, translationX, translationY, scaleX, scaleY, duration, interpolator);
+            view.animate().cancel();
+            ViewPropertyAnimator animator = view.animate();
+            if (alpha != NO_VALUE) {
+                animator.alpha(alpha);
+            }
+            if (translationX != NO_VALUE) {
+                animator.translationX(translationX);
+            }
+            if (translationY != NO_VALUE) {
+                animator.translationY(translationY);
+            }
+            if (scaleX != NO_VALUE) {
+                animator.scaleX(scaleX);
+            }
+            if (scaleY != NO_VALUE) {
+                animator.scaleY(scaleY);
+            }
+            animator.setDuration(duration);
+            animator.setInterpolator(interpolator);
+            animator.start();
+        }
+    }
+
+    /* package */ static class ViewTagAnimator {
+        private final ViewParam param;
+        private final float bounds;
+
+        private final Animator fromAnimator;
+        private final Animator toAnimator;
+
+        private Disco disco;
+        private Enum onBackEvent;
+        private Enum onForwardEvent;
+
+        private float prevValue;
+
+        public ViewTagAnimator(Animator fromAnimator, Animator toAnimator, Disco disco, ViewParam param, float bounds, Enum onBackEvent, Enum onForwardEvent) {
+            this.fromAnimator = fromAnimator;
+            this.toAnimator = toAnimator;
+            this.disco = disco;
+            this.param = param;
+            this.bounds = bounds;
+            this.onBackEvent = onBackEvent;
+            this.onForwardEvent = onForwardEvent;
+        }
+
+        boolean animateIfNeed(View anchorView, View chaserView) {
+            float value = param.getValue(anchorView);
+            boolean changed = false;
+
+            // to upper value
+            if (prevValue <= bounds && value > bounds) {
+                changed = true;
+                toAnimator.animate(chaserView);
+                if (onForwardEvent != null) {
+                    disco.event(onForwardEvent);
+                }
+            }
+
+            // to lower value
+            if (prevValue >= bounds && value < bounds) {
+                changed = true;
+                fromAnimator.animate(chaserView);
+                if (onBackEvent != null) {
+                    disco.event(onBackEvent);
+                }
+            }
+
+            prevValue = value;
+            return changed;
+        }
+    }
+
+    /* package */ static class ScrollTagAnimator {
+        private int orientation;
+
+        private final float bounds;
+
+        private final Animator fromAnimator;
+        private final Animator toAnimator;
+
+        private Disco disco;
+        private Enum onBackEvent;
+        private Enum onForwardEvent;
+
+        private float prevValue;
+
+        public ScrollTagAnimator(int orientation, float bounds, Animator fromAnimator, Animator toAnimator, Disco disco, Enum onBackEvent, Enum onForwardEvent) {
+            this.orientation = orientation;
+            this.bounds = bounds;
+            this.fromAnimator = fromAnimator;
+            this.toAnimator = toAnimator;
+            this.disco = disco;
+            this.onBackEvent = onBackEvent;
+            this.onForwardEvent = onForwardEvent;
+        }
+
+        boolean animateIfNeed(View view, int x, int y) {
+            boolean changed = false;
+            int scrollPosition = orientation == HORIZONTAL ? x : y;
+            if (prevValue <= bounds && bounds < scrollPosition) {
+                changed = true;
+                toAnimator.animate(view);
+                if (onForwardEvent != null) {
+                    disco.event(onForwardEvent);
+                }
+            }
+
+            if (scrollPosition < bounds && bounds <= prevValue) {
+                changed = true;
+                fromAnimator.animate(view);
+                if (onBackEvent != null) {
+                    disco.event(onBackEvent);
+                }
+            }
+
+            prevValue = scrollPosition;
+            return changed;
         }
     }
 
 
-    /* package */ static class BasicViewTransformer {
-        private final ViewParam param;
-
-        private final float fromBounds;
-        private final float toBounds;
-
+    /* package */ static class Transformer {
         private final float fromAlpha;
         private final TranslatePosition fromTranslationX;
         private final TranslatePosition fromTranslationY;
@@ -150,16 +254,9 @@ import java.util.Map;
         private final TranslatePosition toTranslationY;
         private final float toScaleX;
         private final float toScaleY;
+        private final Interpolator interpolator;
 
-        private Interpolator interpolator;
-
-        private float prevProgress;
-
-        public BasicViewTransformer(ViewParam param, float fromBounds, float toBounds, float fromAlpha, TranslatePosition fromTranslationX, TranslatePosition fromTranslationY, float fromScaleX, float fromScaleY,
-                                    float toAlpha, TranslatePosition toTranslationX, TranslatePosition toTranslationY, float toScaleX, float toScaleY, Interpolator interpolator) {
-            this.param = param;
-            this.fromBounds = fromBounds;
-            this.toBounds = toBounds;
+        public Transformer(float fromAlpha, TranslatePosition fromTranslationX, TranslatePosition fromTranslationY, float fromScaleX, float fromScaleY, float toAlpha, TranslatePosition toTranslationX, TranslatePosition toTranslationY, float toScaleX, float toScaleY, Interpolator interpolator) {
             this.fromAlpha = fromAlpha;
             this.fromTranslationX = fromTranslationX;
             this.fromTranslationY = fromTranslationY;
@@ -173,8 +270,8 @@ import java.util.Map;
             this.interpolator = interpolator;
         }
 
-        boolean transform(View anchorView, View chaserView) {
-            float progress = interpolator.getInterpolation(getProgress(anchorView));
+        void transform(View chaserView, float progress) {
+            progress = interpolator.getInterpolation(progress);
             // set params
             if (fromAlpha != NO_VALUE && toAlpha != NO_VALUE) {
                 chaserView.setAlpha(fromAlpha + (toAlpha - fromAlpha) * progress);
@@ -191,6 +288,31 @@ import java.util.Map;
             if (fromScaleY != NO_VALUE && toScaleY != NO_VALUE) {
                 chaserView.setScaleY(fromScaleY + (toScaleY - fromScaleY) * progress);
             }
+        }
+    }
+
+
+    /* package */ static class ViewTransformer {
+        private final ViewParam param;
+
+        private final float fromBounds;
+        private final float toBounds;
+
+        private final Transformer transformer;
+
+        private float prevProgress;
+
+        public ViewTransformer(Transformer transformer, ViewParam param, float fromBounds, float toBounds) {
+            this.transformer = transformer;
+            this.param = param;
+            this.fromBounds = fromBounds;
+            this.toBounds = toBounds;
+        }
+
+        boolean transform(View anchorView, View chaserView) {
+            float progress = getProgress(anchorView);
+            // set params
+            transformer.transform(chaserView, progress);
 
             final boolean changed = prevProgress != progress;
             prevProgress = progress;
@@ -203,87 +325,8 @@ import java.util.Map;
         }
     }
 
-    /* package */ static class BasicViewTagAnimator {
-        private final ViewParam param;
-        private final float bounds;
 
-        private final float fromAlpha;
-        private final float fromTranslationX;
-        private final float fromTranslationY;
-        private final float fromScaleX;
-        private final float fromScaleY;
-
-        private final float toAlpha;
-        private final float toTranslationX;
-        private final float toTranslationY;
-        private final float toScaleX;
-        private final float toScaleY;
-        private long duration;
-
-        private float prevValue;
-
-        private Enum onBackEvent;
-        private Enum onForwardEvent;
-
-        Interpolator interpolator;
-
-        private Disco disco;
-
-        public BasicViewTagAnimator(ViewParam param, float bounds, float fromAlpha, float fromTranslationX, float fromTranslationY, float fromScaleX, float fromScaleY,
-                                    float toAlpha, float toTranslationX, float toTranslationY, float toScaleX, float toScaleY, long duration, Enum onBackEvent, Enum onForwardEvent, Interpolator interpolator) {
-            this.param = param;
-            this.bounds = bounds;
-            this.fromAlpha = fromAlpha;
-            this.fromTranslationX = fromTranslationX;
-            this.fromTranslationY = fromTranslationY;
-            this.fromScaleX = fromScaleX;
-            this.fromScaleY = fromScaleY;
-            this.toAlpha = toAlpha;
-            this.toTranslationX = toTranslationX;
-            this.toTranslationY = toTranslationY;
-            this.toScaleX = toScaleX;
-            this.toScaleY = toScaleY;
-            this.duration = duration;
-            this.onBackEvent = onBackEvent;
-            this.onForwardEvent = onForwardEvent;
-            this.interpolator = interpolator;
-        }
-
-        /* package */ void setDisco(Disco disco) {
-            this.disco = disco;
-        }
-
-        boolean animateIfNeed(View anchorView, View chaserView) {
-            float value = param.getValue(anchorView);
-            boolean changed = false;
-            Logger.d(TAG, "animateIfNeed. prevValue='%s', value='%s', bounds='%s'", prevValue, value, bounds);
-
-            if (prevValue <= bounds && value > bounds) {
-                changed = true;
-                startAnimation(chaserView, toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, duration, interpolator);
-                if (onForwardEvent != null) {
-                    disco.event(onForwardEvent);
-                }
-            }
-
-            if (prevValue >= bounds && value < bounds) {
-                changed = true;
-                startAnimation(chaserView, fromAlpha, fromTranslationX, fromTranslationY, fromScaleX, fromScaleY, duration, interpolator);
-                if (onBackEvent != null) {
-                    disco.event(onBackEvent);
-                }
-            }
-
-            prevValue = value;
-            return changed;
-        }
-    }
-
-
-    /* package */ static class BasicScrollTransformer {
-        /* package */ static final int HORIZONTAL = 0;
-        /* package */ static final int VERTICAL = 1;
-
+    /* package */ static class ScrollTransformer {
         private boolean stopAtBorder;
 
         private int orientation;
@@ -291,44 +334,23 @@ import java.util.Map;
         private int offset;
         private int topOffset;
 
-        private float fromAlpha;
-        private float fromScaleX;
-        private float fromScaleY;
-        private TranslatePosition fromTranslationX;
-        private TranslatePosition fromTranslationY;
-
-        private float toAlpha;
-        private float toScaleX;
-        private float toScaleY;
-        private TranslatePosition toTranslationX;
-        private TranslatePosition toTranslationY;
-
-        private Interpolator interpolator;
+        private final Transformer transformer;
 
         private float prevProgress;
 
 
-        public BasicScrollTransformer(int orientation, float multiplier, int offset, int topOffset, float fromAlpha, float fromScaleX, float fromScaleY, TranslatePosition fromTranslationX, TranslatePosition fromTranslationY,
-                                      float toAlpha, float toScaleX, float toScaleY, boolean stopAtBorder, TranslatePosition toTranslationX, TranslatePosition toTranslationY, Interpolator interpolator) {
+        public ScrollTransformer(Transformer transformer, int orientation, float multiplier, int offset, int topOffset, boolean stopAtBorder) {
+            this.transformer = transformer;
             this.orientation = orientation;
             this.multiplier = multiplier;
             this.offset = offset;
             this.topOffset = topOffset;
-            this.fromAlpha = fromAlpha;
-            this.fromScaleX = fromScaleX;
-            this.fromScaleY = fromScaleY;
-            this.fromTranslationX = fromTranslationX;
-            this.fromTranslationY = fromTranslationY;
-            this.toAlpha = toAlpha;
-            this.toScaleX = toScaleX;
-            this.toScaleY = toScaleY;
             this.stopAtBorder = stopAtBorder;
-            this.toTranslationX = toTranslationX;
-            this.toTranslationY = toTranslationY;
-            this.interpolator = interpolator;
         }
 
+        // TODO implements horizontal scroll
         /* package */ boolean transform(View view, int scrollPositionX, int scrollPositionY) {
+            // calculate range
             int range = 0;
             if (stopAtBorder) {
                 range = Math.max(0, view.getTop() - topOffset);
@@ -339,33 +361,24 @@ import java.util.Map;
                 // TODO It can not restore the view state if it the view has not been set up.
                 range = Integer.MAX_VALUE;
             }
+            // calculate scroll position
             int targetScrollPosition = orientation == HORIZONTAL ? scrollPositionX : scrollPositionY;
             int offsetScrollPosition = Math.max(0, targetScrollPosition - offset);
-            final float viewScrollPosition = - Math.min(offsetScrollPosition * multiplier, range);
-            final float progress = interpolator.getInterpolation(Math.max(0, Math.min(1, Math.abs(viewScrollPosition / (float) range))));
+            final float viewScrollPosition = -Math.min(offsetScrollPosition * multiplier, range);
+
+            // scroll the view
             switch (orientation) {
                 case HORIZONTAL:
                     view.setTranslationX(viewScrollPosition);
-                    if (fromTranslationY != null && toTranslationY != null) {
-                        view.setTranslationX(fromTranslationY.getPosition(view) + (toTranslationY.getPosition(view) - fromTranslationY.getPosition(view)) * progress);
-                    }
                     break;
                 case VERTICAL:
                     view.setTranslationY(viewScrollPosition);
-                    if (fromTranslationX != null && toTranslationX != null) {
-                        view.setTranslationX(fromTranslationX.getPosition(view) + (toTranslationX.getPosition(view) - fromTranslationX.getPosition(view)) * progress);
-                    }
                     break;
             }
-            if (fromAlpha != NO_VALUE && toAlpha != NO_VALUE) {
-                view.setAlpha(fromAlpha + (toAlpha - fromAlpha) * progress);
-            }
-            if (fromScaleX != NO_VALUE && toScaleX != NO_VALUE) {
-                view.setScaleX(fromScaleX + (toScaleX - fromScaleX) * progress);
-            }
-            if (fromScaleY != NO_VALUE && toScaleY != NO_VALUE) {
-                view.setScaleY(fromScaleY + (toScaleY - fromScaleY) * progress);
-            }
+
+            // transform the view
+            final float progress = Math.max(0, Math.min(1, Math.abs(viewScrollPosition / (float) range)));
+            transformer.transform(view, progress);
 
             boolean changed = prevProgress != progress;
             prevProgress = progress;

@@ -81,30 +81,27 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
 
         // set up header image behavior
         mDisco.addScrollObserver(mHeaderImage, mDisco.getScrollChoreographyBuilder()
-                        .onScrollVertical()
+                        .onScroll()
                         .offset(100)
                         .multiplier(0.7f)
-                        .end()
                         .build()
         );
 
         // set up header text behavior
         mDisco.addScrollObserver(mTitleText, mDisco.getScrollChoreographyBuilder()
-                        .onScrollVertical()
+                        .onScroll()
                         .stopAtBorder()
                         .topOffset(dpToPixcel(getActivity(), 4))
                         .scaleX(1f, 0.6f)
                         .scaleY(1f, 0.6f)
                         .translationX(Position.DEFAULT, 0, Position.LEFT, dpToPixcel(getActivity(), 8))
-                        .end()
                         .build()
         );
 
         // set up fab behavior
         mDisco.addScrollObserver(mFab, mDisco.getScrollChoreographyBuilder()
-                        .onScrollVertical()
+                        .onScroll()
                         .topOffset(dpToPixcel(getActivity(), 90))
-                        .end()
                         .build()
         );
         mDisco.addViewObserver(mFab, mFab, mDisco.getViewChaseChoreographyBuilder()
@@ -114,7 +111,6 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
                         .duration(200)
                         .interpolator(new DecelerateInterpolator())
                         .notifyEvent(SampleEvent.BACK, SampleEvent.FORWARD)
-                        .end()
                         .build()
         );
 
