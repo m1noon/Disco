@@ -8,7 +8,6 @@ import android.view.View;
 
 import com.minoon.disco.choreography.ScrollChoreography;
 import com.minoon.disco.choreography.ViewChaseChoreography;
-import com.minoon.disco.choreography.builder.ChoreographyBuilderProvider;
 import com.minoon.disco.choreography.builder.ScrollChoreographyBuilder;
 import com.minoon.disco.choreography.builder.ViewChaseChoreographyBuilder;
 
@@ -32,11 +31,11 @@ public class Disco {
     }
 
     public ScrollChoreographyBuilder getScrollChoreographyBuilder() {
-        return ChoreographyBuilderProvider.getScrollChoreographyBuilder(this);
+        return new ScrollChoreographyBuilder(this);
     }
 
     public ViewChaseChoreographyBuilder getViewChaseChoreographyBuilder() {
-        return ChoreographyBuilderProvider.getViewChaseChoreographyBuilder(this);
+        return new ViewChaseChoreographyBuilder(this);
     }
 
     public void setUp() {
@@ -105,6 +104,7 @@ public class Disco {
 
 
 
+
     //// SaveState
 
 
@@ -129,7 +129,7 @@ public class Disco {
     }
 
 
-    public static class SavedState implements Parcelable {
+    /* package */ static class SavedState implements Parcelable {
         Bundle listenerSaveStateMap;
 
         public SavedState() {

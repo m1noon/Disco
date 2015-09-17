@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     >
 
+
     <ImageView
         android:id="@+id/a_collapsing_header_iv_header"
         android:layout_width="match_parent"
@@ -38,6 +39,19 @@
         android:minHeight="?attr/actionBarSize"
         android:background="@drawable/toolbar_bg_transition"
         app:titleTextColor="@android:color/white"
+        />
+
+    <TextView
+        android:id="@+id/a_collapsing_header_tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/a_collapsing_header_iv_header"
+        android:textColor="@android:color/white"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:textSize="36sp"
+        android:text="Hello Disco!!!"
+        android:layout_centerHorizontal="true"
         />
 
 </RelativeLayout>

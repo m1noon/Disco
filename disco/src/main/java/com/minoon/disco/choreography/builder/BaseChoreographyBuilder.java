@@ -1,26 +1,82 @@
 package com.minoon.disco.choreography.builder;
 
+import com.minoon.disco.Disco;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by a13587 on 15/09/15.
  */
-public interface BaseChoreographyBuilder<T> {
+public abstract class BaseChoreographyBuilder<T> {
+    private static final String TAG = BaseChoreographyBuilder.class.getSimpleName();
+    /* package */ static final float NO_VALUE = Float.MIN_VALUE;
 
-    EventAnimationBuilder<T> at(Enum e);
+    private final Map<Enum, BasicChoreography.BasicAnimator> eventAnimators;
 
-    interface EventAnimationBuilder<T> {
+    protected Disco disco;
 
-        EventAnimationBuilder<T> alpha(float alpha);
+    public BaseChoreographyBuilder(Disco disco) {
+        eventAnimators = new HashMap<>();
+        this.disco = disco;
+    }
 
-        EventAnimationBuilder<T> translationX(float translationX);
+    protected abstract T getBuilderInstance();
 
-        EventAnimationBuilder<T> translationY(float translationY);
+    public EventAnimationBuilder at(Enum e) {
+        return new EventAnimationBuilder(e);
+    }
 
-        EventAnimationBuilder<T> scaleX(float scaleX);
+    public class EventAnimationBuilder {
 
-        EventAnimationBuilder<T> scaleY(float scaleY);
+        // for event animation
+        private Enum event;
+        private float alpha = NO_VALUE;
+        private float translationX = NO_VALUE;
+        private float translationY = NO_VALUE;
+        private float scaleX = NO_VALUE;
+        private float scaleY = NO_VALUE;
+        private long duration = 300;
 
-        EventAnimationBuilder<T> duration(long duration);
+        public EventAnimationBuilder(Enum event) {
+            this.event = event;
+        }
 
-        T end();
+        public EventAnimationBuilder alpha(float alpha) {
+            this.alpha = alpha;
+            return this;
+        }
+
+        public EventAnimationBuilder translationX(float translationX) {
+            this.translationX = translationX;
+            return this;
+        }
+
+        public EventAnimationBuilder translationY(float translationY) {
+            this.translationY = translationY;
+            return this;
+        }
+
+        public EventAnimationBuilder scaleX(float scaleX) {
+            this.scaleX = scaleX;
+            return this;
+        }
+
+        public EventAnimationBuilder scaleY(float scaleY) {
+            this.scaleY = scaleY;
+            return this;
+        }
+
+        public EventAnimationBuilder duration(long duration) {
+            this.duration = duration;
+            return this;
+        }
+
+        public T end() {
+            BaseChoreographyBuilder.this.eventAnimators.put(event, new BasicChoreography.BasicAnimator(
+                    alpha, translationX, translationY, scaleX, scaleY, duration
+            ));
+            return BaseChoreographyBuilder.this.getBuilderInstance();
+        }
     }
 }

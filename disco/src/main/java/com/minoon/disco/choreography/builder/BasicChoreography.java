@@ -136,20 +136,20 @@ import java.util.Map;
         private final float toBounds;
 
         private final float fromAlpha;
-        private final float fromTranslationX;
-        private final float fromTranslationY;
+        private final TranslatePosition fromTranslationX;
+        private final TranslatePosition fromTranslationY;
         private final float fromScaleX;
         private final float fromScaleY;
 
         private final float toAlpha;
-        private final float toTranslationX;
-        private final float toTranslationY;
+        private final TranslatePosition toTranslationX;
+        private final TranslatePosition toTranslationY;
         private final float toScaleX;
         private final float toScaleY;
 
         private float prevProgress;
 
-        public BasicViewTransformer(ViewParam param, float fromBounds, float toBounds, float fromAlpha, float fromTranslationX, float fromTranslationY, float fromScaleX, float fromScaleY, float toAlpha, float toTranslationX, float toTranslationY, float toScaleX, float toScaleY) {
+        public BasicViewTransformer(ViewParam param, float fromBounds, float toBounds, float fromAlpha, TranslatePosition fromTranslationX, TranslatePosition fromTranslationY, float fromScaleX, float fromScaleY, float toAlpha, TranslatePosition toTranslationX, TranslatePosition toTranslationY, float toScaleX, float toScaleY) {
             this.param = param;
             this.fromBounds = fromBounds;
             this.toBounds = toBounds;
@@ -171,11 +171,11 @@ import java.util.Map;
             if (fromAlpha != NO_VALUE && toAlpha != NO_VALUE) {
                 chaserView.setAlpha(fromAlpha + (toAlpha - fromAlpha) * progress);
             }
-            if (fromTranslationX != NO_VALUE && toTranslationX != NO_VALUE) {
-                chaserView.setTranslationX(fromTranslationX + (toTranslationX - fromTranslationX) * progress);
+            if (fromTranslationX != null && toTranslationX != null) {
+                chaserView.setTranslationX(fromTranslationX.getPosition(chaserView) + (toTranslationX.getPosition(chaserView) - fromTranslationX.getPosition(chaserView)) * progress);
             }
-            if (fromTranslationY != NO_VALUE && toTranslationY != NO_VALUE) {
-                chaserView.setTranslationY(fromTranslationY + (toTranslationY - fromTranslationY) * progress);
+            if (fromTranslationY != null && toTranslationY != null) {
+                chaserView.setTranslationY(fromTranslationY.getPosition(chaserView) + (toTranslationY.getPosition(chaserView) - fromTranslationY.getPosition(chaserView)) * progress);
             }
             if (fromScaleX != NO_VALUE && toScaleX != NO_VALUE) {
                 chaserView.setScaleX(fromScaleX + (toScaleX - fromScaleX) * progress);
@@ -190,7 +190,8 @@ import java.util.Map;
         }
 
         private float getProgress(View view) {
-            float progress = param.getValue(view) / (toBounds - fromBounds);
+            float progress = (param.getValue(view) - fromBounds) / (toBounds - fromBounds);
+            Logger.d(TAG, "ViewChaseTransform. progress='%s'. toB='%s', fromB='%s', val='%s'", progress, toBounds, fromBounds, param.getValue(view));
             return Math.min(1, Math.max(0, progress));
         }
     }
@@ -272,6 +273,8 @@ import java.util.Map;
         /* package */ static final int HORIZONTAL = 0;
         /* package */ static final int VERTICAL = 1;
 
+        private boolean stopAtBorder;
+
         private int orientation;
         private float multiplier;
         private int offset;
@@ -280,15 +283,20 @@ import java.util.Map;
         private float fromAlpha;
         private float fromScaleX;
         private float fromScaleY;
+        private TranslatePosition fromTranslationX;
+        private TranslatePosition fromTranslationY;
 
         private float toAlpha;
         private float toScaleX;
         private float toScaleY;
+        private TranslatePosition toTranslationX;
+        private TranslatePosition toTranslationY;
 
         private float prevProgress;
 
 
-        public BasicScrollTransformer(int orientation, float multiplier, int offset, int topOffset, float fromAlpha, float fromScaleX, float fromScaleY, float toAlpha, float toScaleX, float toScaleY) {
+        public BasicScrollTransformer(int orientation, float multiplier, int offset, int topOffset, float fromAlpha, float fromScaleX, float fromScaleY, TranslatePosition fromTranslationX, TranslatePosition fromTranslationY,
+                                      float toAlpha, float toScaleX, float toScaleY, boolean stopAtBorder, TranslatePosition toTranslationX, TranslatePosition toTranslationY) {
             this.orientation = orientation;
             this.multiplier = multiplier;
             this.offset = offset;
@@ -296,29 +304,45 @@ import java.util.Map;
             this.fromAlpha = fromAlpha;
             this.fromScaleX = fromScaleX;
             this.fromScaleY = fromScaleY;
+            this.fromTranslationX = fromTranslationX;
+            this.fromTranslationY = fromTranslationY;
             this.toAlpha = toAlpha;
             this.toScaleX = toScaleX;
             this.toScaleY = toScaleY;
+            this.stopAtBorder = stopAtBorder;
+            this.toTranslationX = toTranslationX;
+            this.toTranslationY = toTranslationY;
         }
 
         /* package */ boolean transform(View view, int scrollPositionX, int scrollPositionY) {
-            int range = Math.max(0, view.getBottom() - topOffset);
+            int range = 0;
+            if (stopAtBorder) {
+                range = Math.max(0, view.getTop() - topOffset);
+            } else {
+                range = Math.max(0, view.getBottom() - topOffset);
+            }
             if (range == 0) {
+                // TODO It can not restore the view state if it the view has not been set up.
                 range = Integer.MAX_VALUE;
             }
             int targetScrollPosition = orientation == HORIZONTAL ? scrollPositionX : scrollPositionY;
             int offsetScrollPosition = Math.max(0, targetScrollPosition - offset);
             final float viewScrollPosition = - Math.min(offsetScrollPosition * multiplier, range);
+            final float progress = Math.max(0, Math.min(1, Math.abs(viewScrollPosition / (float) range)));
             switch (orientation) {
                 case HORIZONTAL:
                     view.setTranslationX(viewScrollPosition);
+                    if (fromTranslationY != null && toTranslationY != null) {
+                        view.setTranslationX(fromTranslationY.getPosition(view) + (toTranslationY.getPosition(view) - fromTranslationY.getPosition(view)) * progress);
+                    }
                     break;
                 case VERTICAL:
                     view.setTranslationY(viewScrollPosition);
+                    if (fromTranslationX != null && toTranslationX != null) {
+                        view.setTranslationX(fromTranslationX.getPosition(view) + (toTranslationX.getPosition(view) - fromTranslationX.getPosition(view)) * progress);
+                    }
                     break;
             }
-            final float progress = Math.max(0, Math.min(1, Math.abs(viewScrollPosition / (float) range)));
-            Logger.d(TAG, "scrollTransform. x='%s', y='%s', range='%s', progress='%s'", scrollPositionX, scrollPositionY, range, progress);
             if (fromAlpha != NO_VALUE && toAlpha != NO_VALUE) {
                 view.setAlpha(fromAlpha + (toAlpha - fromAlpha) * progress);
             }

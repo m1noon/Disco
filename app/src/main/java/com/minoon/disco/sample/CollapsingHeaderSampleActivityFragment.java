@@ -15,10 +15,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.minoon.disco.Disco;
 import com.minoon.disco.ViewParam;
 import com.minoon.disco.choreography.ScrollChoreography;
+import com.minoon.disco.choreography.builder.Position;
 import com.minoon.disco.sample.adapter.SampleAdapter;
 
 import butterknife.Bind;
@@ -33,6 +35,8 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
 
     @Bind(R.id.a_collapsing_header_iv_header)
     ImageView mHeaderImage;
+    @Bind(R.id.a_collapsing_header_tv_title)
+    TextView mTitleText;
     @Bind(R.id.a_collapsing_header_tb_toolbar)
     Toolbar mToolbar;
     @Bind(R.id.a_collapsing_header_rv_list)
@@ -58,6 +62,7 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
 
         // set up views
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setAdapter(new SampleAdapter());
@@ -76,8 +81,19 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
         // set up header image behavior
         mDisco.addScrollObserver(mHeaderImage, mDisco.getScrollChoreographyBuilder()
                         .onScrollVertical()
+                        .offset(100)
                         .multiplier(0.7f)
-                        .alpha(1f, 0.7f)
+                        .end()
+                        .build()
+        );
+
+        mDisco.addScrollObserver(mTitleText, mDisco.getScrollChoreographyBuilder()
+                        .onScrollVertical()
+                        .stopAtBorder()
+                        .topOffset(dpToPixcel(getActivity(), 4))
+                        .scaleX(1f, 0.6f)
+                        .scaleY(1f, 0.6f)
+                        .translationX(Position.DEFAULT, 0,  Position.LEFT, dpToPixcel(getActivity(), 8))
                         .end()
                         .build()
         );
