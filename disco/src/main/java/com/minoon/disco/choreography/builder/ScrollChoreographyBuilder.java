@@ -1,5 +1,8 @@
 package com.minoon.disco.choreography.builder;
 
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
+
 import com.minoon.disco.Disco;
 import com.minoon.disco.choreography.ScrollChoreography;
 
@@ -53,6 +56,7 @@ public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollCho
         private float toScaleY = NO_VALUE;
         private TranslatePosition toTranslationX;
         private TranslatePosition toTranslationY;
+        private Interpolator interpolator = new LinearInterpolator();
 
         private int offset = 0;
         private int topOffset = 0;
@@ -124,10 +128,15 @@ public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollCho
             return this;
         }
 
+        public ScrollTransformerBuilder interpolator(Interpolator interpolator) {
+            this.interpolator = interpolator;
+            return this;
+        }
+
         public ScrollChoreographyBuilder end() {
             ScrollChoreographyBuilder.this.scrollTransformer = new BasicChoreography.BasicScrollTransformer(
                     scrollOrientation, multiplier, offset, topOffset, fromAlpha, fromScaleX, fromScaleY, fromTranslationX, fromTranslationY,
-                    toAlpha, toScaleX, toScaleY, stopAtBoder, toTranslationX, toTranslationY
+                    toAlpha, toScaleX, toScaleY, stopAtBoder, toTranslationX, toTranslationY, interpolator
             );
             return ScrollChoreographyBuilder.this;
         }

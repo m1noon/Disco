@@ -1,5 +1,8 @@
 package com.minoon.disco.choreography.builder;
 
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
+
 import com.minoon.disco.Disco;
 
 import java.util.HashMap;
@@ -37,6 +40,7 @@ public abstract class BaseChoreographyBuilder<T> {
         private float scaleX = NO_VALUE;
         private float scaleY = NO_VALUE;
         private long duration = 300;
+        private Interpolator interpolator = new LinearInterpolator();
 
         public EventAnimationBuilder(Enum event) {
             this.event = event;
@@ -72,9 +76,14 @@ public abstract class BaseChoreographyBuilder<T> {
             return this;
         }
 
+        public EventAnimationBuilder interpolator(Interpolator interpolator) {
+            this.interpolator = interpolator;
+            return this;
+        }
+
         public T end() {
             BaseChoreographyBuilder.this.eventAnimators.put(event, new BasicChoreography.BasicAnimator(
-                    alpha, translationX, translationY, scaleX, scaleY, duration
+                    alpha, translationX, translationY, scaleX, scaleY, duration, interpolator
             ));
             return BaseChoreographyBuilder.this.getBuilderInstance();
         }

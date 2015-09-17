@@ -1,5 +1,8 @@
 package com.minoon.disco.choreography.builder;
 
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
+
 import com.minoon.disco.Disco;
 import com.minoon.disco.ViewParam;
 import com.minoon.disco.choreography.ViewChaseChoreography;
@@ -62,6 +65,8 @@ public class ViewChaseChoreographyBuilder extends BaseChoreographyBuilder<ViewCh
         private float toScaleX = NO_VALUE;
         private float toScaleY = NO_VALUE;
 
+        Interpolator interpolator = new LinearInterpolator();
+
         public ViewTransformerBuilder(ViewParam viewParam, float fromBounds, float toBounds) {
             this.viewParam = viewParam;
             this.fromBounds = fromBounds;
@@ -122,10 +127,15 @@ public class ViewChaseChoreographyBuilder extends BaseChoreographyBuilder<ViewCh
             return this;
         }
 
+        public ViewTransformerBuilder interpolator(Interpolator interpolator) {
+            this.interpolator = interpolator;
+            return this;
+        }
+
         public ViewChaseChoreographyBuilder end() {
             ViewChaseChoreographyBuilder.this.transformer = new BasicChoreography.BasicViewTransformer(
                     viewParam, fromBounds, toBounds, fromAlpha, fromTranslationX, fromTranslationY, fromScaleX, fromScaleY,
-                    toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY
+                    toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, interpolator
             );
             return ViewChaseChoreographyBuilder.this;
         }
@@ -152,6 +162,8 @@ public class ViewChaseChoreographyBuilder extends BaseChoreographyBuilder<ViewCh
         private float toScaleY = NO_VALUE;
 
         private long duration = 300;
+
+        private Interpolator interpolator = new LinearInterpolator();
 
         private Enum onBackEvent;
         private Enum onForwardEvent;
@@ -196,6 +208,11 @@ public class ViewChaseChoreographyBuilder extends BaseChoreographyBuilder<ViewCh
             return this;
         }
 
+        public ViewTagAnimatorBuilder interpolator(Interpolator interpolator) {
+            this.interpolator = interpolator;
+            return this;
+        }
+
         public ViewTagAnimatorBuilder notifyEvent(Enum beforeEvent, Enum afterEvent) {
             this.onBackEvent = beforeEvent;
             this.onForwardEvent = afterEvent;
@@ -205,7 +222,7 @@ public class ViewChaseChoreographyBuilder extends BaseChoreographyBuilder<ViewCh
         public ViewChaseChoreographyBuilder end() {
             ViewChaseChoreographyBuilder.this.viewTagAnimator = new BasicChoreography.BasicViewTagAnimator(
                     viewParam, boundary, fromAlpha, fromTranslationX, fromTranslationY, fromScaleX, fromScaleY,
-                    toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, duration, onBackEvent, onForwardEvent
+                    toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, duration, onBackEvent, onForwardEvent, interpolator
             );
             return ViewChaseChoreographyBuilder.this;
         }

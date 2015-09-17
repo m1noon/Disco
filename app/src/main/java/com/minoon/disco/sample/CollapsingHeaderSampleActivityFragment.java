@@ -14,6 +14,7 @@ import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -87,13 +88,14 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
                         .build()
         );
 
+        // set up header text behavior
         mDisco.addScrollObserver(mTitleText, mDisco.getScrollChoreographyBuilder()
                         .onScrollVertical()
                         .stopAtBorder()
                         .topOffset(dpToPixcel(getActivity(), 4))
                         .scaleX(1f, 0.6f)
                         .scaleY(1f, 0.6f)
-                        .translationX(Position.DEFAULT, 0,  Position.LEFT, dpToPixcel(getActivity(), 8))
+                        .translationX(Position.DEFAULT, 0, Position.LEFT, dpToPixcel(getActivity(), 8))
                         .end()
                         .build()
         );
@@ -110,6 +112,7 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
                         .scaleX(0, 1)
                         .scaleY(0, 1)
                         .duration(200)
+                        .interpolator(new DecelerateInterpolator())
                         .notifyEvent(SampleEvent.BACK, SampleEvent.FORWARD)
                         .end()
                         .build()

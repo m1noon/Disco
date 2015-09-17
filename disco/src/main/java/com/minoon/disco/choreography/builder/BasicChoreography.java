@@ -2,6 +2,7 @@ package com.minoon.disco.choreography.builder;
 
 import android.view.View;
 import android.view.ViewPropertyAnimator;
+import android.view.animation.Interpolator;
 
 import com.minoon.disco.Disco;
 import com.minoon.disco.Logger;
@@ -84,7 +85,7 @@ import java.util.Map;
         this.viewTagAnimator = viewTagAnimator;
     }
 
-    private static void startAnimation(View view, float alpha, float translationX, float translationY, float scaleX, float scaleY, long duration) {
+    private static void startAnimation(View view, float alpha, float translationX, float translationY, float scaleX, float scaleY, long duration, Interpolator interpolator) {
         view.animate().cancel();
         ViewPropertyAnimator animator = view.animate();
         if (alpha != NO_VALUE) {
@@ -103,6 +104,7 @@ import java.util.Map;
             animator.scaleY(scaleY);
         }
         animator.setDuration(duration);
+        animator.setInterpolator(interpolator);
         animator.start();
     }
 
@@ -113,18 +115,20 @@ import java.util.Map;
         private final float scaleX;
         private final float scaleY;
         private final long duration;
+        private final Interpolator interpolator;
 
-        public BasicAnimator(float alpha, float translationX, float translationY, float scaleX, float scaleY, long duration) {
+        public BasicAnimator(float alpha, float translationX, float translationY, float scaleX, float scaleY, long duration, Interpolator interpolator) {
             this.alpha = alpha;
             this.translationX = translationX;
             this.translationY = translationY;
             this.scaleX = scaleX;
             this.scaleY = scaleY;
             this.duration = duration;
+            this.interpolator = interpolator;
         }
 
         public void animate(View view) {
-            startAnimation(view, alpha, translationX, translationY, scaleX, scaleY, duration);
+            startAnimation(view, alpha, translationX, translationY, scaleX, scaleY, duration, interpolator);
         }
     }
 
@@ -147,9 +151,12 @@ import java.util.Map;
         private final float toScaleX;
         private final float toScaleY;
 
+        private Interpolator interpolator;
+
         private float prevProgress;
 
-        public BasicViewTransformer(ViewParam param, float fromBounds, float toBounds, float fromAlpha, TranslatePosition fromTranslationX, TranslatePosition fromTranslationY, float fromScaleX, float fromScaleY, float toAlpha, TranslatePosition toTranslationX, TranslatePosition toTranslationY, float toScaleX, float toScaleY) {
+        public BasicViewTransformer(ViewParam param, float fromBounds, float toBounds, float fromAlpha, TranslatePosition fromTranslationX, TranslatePosition fromTranslationY, float fromScaleX, float fromScaleY,
+                                    float toAlpha, TranslatePosition toTranslationX, TranslatePosition toTranslationY, float toScaleX, float toScaleY, Interpolator interpolator) {
             this.param = param;
             this.fromBounds = fromBounds;
             this.toBounds = toBounds;
@@ -163,10 +170,11 @@ import java.util.Map;
             this.toTranslationY = toTranslationY;
             this.toScaleX = toScaleX;
             this.toScaleY = toScaleY;
+            this.interpolator = interpolator;
         }
 
         boolean transform(View anchorView, View chaserView) {
-            float progress = getProgress(anchorView);
+            float progress = interpolator.getInterpolation(getProgress(anchorView));
             // set params
             if (fromAlpha != NO_VALUE && toAlpha != NO_VALUE) {
                 chaserView.setAlpha(fromAlpha + (toAlpha - fromAlpha) * progress);
@@ -191,7 +199,6 @@ import java.util.Map;
 
         private float getProgress(View view) {
             float progress = (param.getValue(view) - fromBounds) / (toBounds - fromBounds);
-            Logger.d(TAG, "ViewChaseTransform. progress='%s'. toB='%s', fromB='%s', val='%s'", progress, toBounds, fromBounds, param.getValue(view));
             return Math.min(1, Math.max(0, progress));
         }
     }
@@ -218,9 +225,12 @@ import java.util.Map;
         private Enum onBackEvent;
         private Enum onForwardEvent;
 
+        Interpolator interpolator;
+
         private Disco disco;
 
-        public BasicViewTagAnimator(ViewParam param, float bounds, float fromAlpha, float fromTranslationX, float fromTranslationY, float fromScaleX, float fromScaleY, float toAlpha, float toTranslationX, float toTranslationY, float toScaleX, float toScaleY, long duration, Enum onBackEvent, Enum onForwardEvent) {
+        public BasicViewTagAnimator(ViewParam param, float bounds, float fromAlpha, float fromTranslationX, float fromTranslationY, float fromScaleX, float fromScaleY,
+                                    float toAlpha, float toTranslationX, float toTranslationY, float toScaleX, float toScaleY, long duration, Enum onBackEvent, Enum onForwardEvent, Interpolator interpolator) {
             this.param = param;
             this.bounds = bounds;
             this.fromAlpha = fromAlpha;
@@ -236,6 +246,7 @@ import java.util.Map;
             this.duration = duration;
             this.onBackEvent = onBackEvent;
             this.onForwardEvent = onForwardEvent;
+            this.interpolator = interpolator;
         }
 
         /* package */ void setDisco(Disco disco) {
@@ -249,7 +260,7 @@ import java.util.Map;
 
             if (prevValue <= bounds && value > bounds) {
                 changed = true;
-                startAnimation(chaserView, toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, duration);
+                startAnimation(chaserView, toAlpha, toTranslationX, toTranslationY, toScaleX, toScaleY, duration, interpolator);
                 if (onForwardEvent != null) {
                     disco.event(onForwardEvent);
                 }
@@ -257,7 +268,7 @@ import java.util.Map;
 
             if (prevValue >= bounds && value < bounds) {
                 changed = true;
-                startAnimation(chaserView, fromAlpha, fromTranslationX, fromTranslationY, fromScaleX, fromScaleY, duration);
+                startAnimation(chaserView, fromAlpha, fromTranslationX, fromTranslationY, fromScaleX, fromScaleY, duration, interpolator);
                 if (onBackEvent != null) {
                     disco.event(onBackEvent);
                 }
@@ -292,11 +303,13 @@ import java.util.Map;
         private TranslatePosition toTranslationX;
         private TranslatePosition toTranslationY;
 
+        private Interpolator interpolator;
+
         private float prevProgress;
 
 
         public BasicScrollTransformer(int orientation, float multiplier, int offset, int topOffset, float fromAlpha, float fromScaleX, float fromScaleY, TranslatePosition fromTranslationX, TranslatePosition fromTranslationY,
-                                      float toAlpha, float toScaleX, float toScaleY, boolean stopAtBorder, TranslatePosition toTranslationX, TranslatePosition toTranslationY) {
+                                      float toAlpha, float toScaleX, float toScaleY, boolean stopAtBorder, TranslatePosition toTranslationX, TranslatePosition toTranslationY, Interpolator interpolator) {
             this.orientation = orientation;
             this.multiplier = multiplier;
             this.offset = offset;
@@ -312,6 +325,7 @@ import java.util.Map;
             this.stopAtBorder = stopAtBorder;
             this.toTranslationX = toTranslationX;
             this.toTranslationY = toTranslationY;
+            this.interpolator = interpolator;
         }
 
         /* package */ boolean transform(View view, int scrollPositionX, int scrollPositionY) {
@@ -328,7 +342,7 @@ import java.util.Map;
             int targetScrollPosition = orientation == HORIZONTAL ? scrollPositionX : scrollPositionY;
             int offsetScrollPosition = Math.max(0, targetScrollPosition - offset);
             final float viewScrollPosition = - Math.min(offsetScrollPosition * multiplier, range);
-            final float progress = Math.max(0, Math.min(1, Math.abs(viewScrollPosition / (float) range)));
+            final float progress = interpolator.getInterpolation(Math.max(0, Math.min(1, Math.abs(viewScrollPosition / (float) range))));
             switch (orientation) {
                 case HORIZONTAL:
                     view.setTranslationX(viewScrollPosition);
