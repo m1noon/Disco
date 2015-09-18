@@ -5,6 +5,22 @@ scroll animation library for Android
 ![demo_simple]
 ![demo_complex]
 
+# Gradle
+
+It will soon register to jcenter.
+
+```
+repositories {
+    maven {
+        url "http://dl.bintray.com/m1noon/maven"
+    }
+}
+
+dependencies {
+    compile 'com.minoon:disco:0.1.1'
+}
+```
+
 # How To Use
 ```
 Disco disco = new Disco();
