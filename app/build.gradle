@@ -19,10 +19,17 @@ android {
     }
 }
 
+repositories {
+    maven {
+        url "http://dl.bintray.com/m1noon/maven"
+    }
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.0.0'
     compile project(':disco')
+//    compile 'com.minoon:disco:0.1.1'
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'com.android.support:design:22.2.1'
 }
