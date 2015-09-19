@@ -7,18 +7,8 @@ scroll animation library for Android
 
 # Gradle
 
-It will soon register to jcenter.
-
 ```
-repositories {
-    maven {
-        url "http://dl.bintray.com/m1noon/maven"
-    }
-}
-
-dependencies {
-    compile 'com.minoon:disco:0.1.1'
-}
+compile 'com.minoon:disco:0.1.1'
 ```
 
 # How To Use
