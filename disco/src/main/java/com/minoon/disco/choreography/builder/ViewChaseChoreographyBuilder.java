@@ -50,6 +50,7 @@ public class ViewChaseChoreographyBuilder extends BaseChoreographyBuilder<ViewCh
             this.toBounds = toBounds;
         }
 
+        @Override
         public ViewChaseChoreographyBuilder end() {
             ViewChaseChoreographyBuilder.this.transformer = new BasicChoreography.ViewTransformer(
                     buildTransformer(), viewParam, fromBounds, toBounds
@@ -57,6 +58,7 @@ public class ViewChaseChoreographyBuilder extends BaseChoreographyBuilder<ViewCh
             return ViewChaseChoreographyBuilder.this;
         }
 
+        @Override
         public ViewChaseChoreography build() {
             return end().build();
         }
@@ -84,6 +86,7 @@ public class ViewChaseChoreographyBuilder extends BaseChoreographyBuilder<ViewCh
             return this;
         }
 
+        @Override
         public ViewChaseChoreographyBuilder end() {
             ViewChaseChoreographyBuilder.this.viewTagAnimator = new BasicChoreography.ViewTagAnimator(
                     buildFromAnimator(), buildToAnimator(), disco, viewParam, boundary, onBackEvent, onForwardEvent
@@ -91,6 +94,7 @@ public class ViewChaseChoreographyBuilder extends BaseChoreographyBuilder<ViewCh
             return ViewChaseChoreographyBuilder.this;
         }
 
+        @Override
         public ViewChaseChoreography build() {
             return end().build();
         }

@@ -20,7 +20,7 @@ import android.widget.TextView;
 
 import com.minoon.disco.Disco;
 import com.minoon.disco.ViewParam;
-import com.minoon.disco.choreography.ScrollChoreography;
+import com.minoon.disco.choreography.Choreography;
 import com.minoon.disco.choreography.builder.Position;
 import com.minoon.disco.sample.adapter.SampleAdapter;
 
@@ -115,30 +115,28 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
         );
 
         // set up toolbar behavior
-        mDisco.addScrollObserver(mToolbar, new ScrollChoreography() {
-
-            @Override
-            public long playEvent(Enum e, View chaserView) {
-                int duration = 300;
-                if (e instanceof SampleEvent) {
-                    TransitionDrawable drawable = (TransitionDrawable) chaserView.getBackground();
-                    switch ((SampleEvent) e) {
-                        case BACK:
-                            drawable.startTransition(duration);
-                            return duration;
-                        case FORWARD:
-                            drawable.reverseTransition(duration);
-                            return duration;
+        mDisco.addScrollObserver(mToolbar, mDisco.getScrollChoreographyBuilder()
+                        .at(SampleEvent.BACK)
+                        .animator(new Choreography.Animator() {
+                            @Override
+                            public long animate(View view) {
+                                TransitionDrawable drawable = (TransitionDrawable) view.getBackground();
+                                drawable.startTransition(300);
+                                return 300;
                     }
-                }
-                return 0;
-            }
-
-            @Override
-            public boolean playScroll(View chaserView, int dx, int dy, int x, int y) {
-                return false;
-            }
-        });
+                        })
+                        .end()
+                        .at(SampleEvent.FORWARD)
+                        .animator(new Choreography.Animator() {
+                            @Override
+                            public long animate(View view) {
+                                TransitionDrawable drawable = (TransitionDrawable) view.getBackground();
+                                drawable.reverseTransition(300);
+                                return 300;
+                            }
+                        })
+                        .build()
+        );
 
         if (savedInstanceState != null) {
             mDisco.restoreInstanceState(savedInstanceState.getParcelable(ARG_DISCO_STATE));

@@ -4,6 +4,8 @@ import com.minoon.disco.Disco;
 import com.minoon.disco.choreography.ScrollChoreography;
 
 /**
+ * Builder of {@link ScrollChoreography}
+ *
  * Created by a13587 on 15/09/15.
  */
 public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollChoreographyBuilder, ScrollChoreography> {
@@ -41,6 +43,10 @@ public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollCho
         return choreography;
     }
 
+
+    /**
+     * Builder class of Transformer for scroll.
+     */
     public final class ScrollTransformerBuilder extends BaseTransformerBuilder<ScrollTransformerBuilder> {
         // for scroll transformation
         private int scrollOrientation;
@@ -75,6 +81,7 @@ public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollCho
             return this;
         }
 
+        @Override
         public ScrollChoreographyBuilder end() {
             ScrollChoreographyBuilder.this.scrollTransformer = new BasicChoreography.ScrollTransformer(
                     buildTransformer(), scrollOrientation, multiplier, offset, topOffset, stopAtBoder
@@ -82,12 +89,16 @@ public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollCho
             return ScrollChoreographyBuilder.this;
         }
 
+        @Override
         public ScrollChoreography build() {
             return end().build();
         }
     }
 
 
+    /**
+     * Builder class of Animator for scroll.
+     */
     public final class ScrollTagAnimatorBuilder extends BaseAnimatorBuilder<ScrollTagAnimatorBuilder> {
         private final float boundary;
 
@@ -104,6 +115,7 @@ public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollCho
             return this;
         }
 
+        @Override
         public ScrollChoreographyBuilder end() {
             ScrollChoreographyBuilder.this.scrollTagAnimator = new BasicChoreography.ScrollTagAnimator(
                     orientation, boundary,
@@ -114,6 +126,7 @@ public class ScrollChoreographyBuilder extends BaseChoreographyBuilder<ScrollCho
             return ScrollChoreographyBuilder.this;
         }
 
+        @Override
         public ScrollChoreography build() {
             return end().build();
         }

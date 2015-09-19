@@ -7,6 +7,7 @@ import android.view.animation.Interpolator;
 import com.minoon.disco.Disco;
 import com.minoon.disco.Logger;
 import com.minoon.disco.ViewParam;
+import com.minoon.disco.choreography.Choreography;
 import com.minoon.disco.choreography.ScrollChoreography;
 import com.minoon.disco.choreography.ViewChaseChoreography;
 
@@ -15,7 +16,7 @@ import java.util.Map;
 
 /**
  * A Basic implementation of Choreography.
- *
+ * <p/>
  * Created by a13587 on 15/09/11.
  */
 /* package */ class BasicChoreography implements ScrollChoreography, ViewChaseChoreography {
@@ -25,7 +26,7 @@ import java.util.Map;
     /* package */ static final int HORIZONTAL = 0;
     /* package */ static final int VERTICAL = 1;
 
-    Map<Enum, Animator> eventAnimator;
+    Map<Enum, Choreography.Animator> eventAnimator;
 
     ViewTransformer viewTransformer;
 
@@ -55,10 +56,9 @@ import java.util.Map;
 
     @Override
     public long playEvent(Enum e, View chaserView) {
-        Animator animator = eventAnimator.get(e);
+        Choreography.Animator animator = eventAnimator.get(e);
         if (animator != null) {
-            animator.animate(chaserView);
-            return animator.duration;
+            return animator.animate(chaserView);
         }
         return 0;
     }
@@ -86,7 +86,7 @@ import java.util.Map;
         this.scrollTagAnimator = tagAnimator;
     }
 
-    /* package */ void addEventAnimators(Map<Enum, Animator> animators) {
+    /* package */ void addEventAnimators(Map<Enum, Choreography.Animator> animators) {
         if (animators != null && animators.size() > 0) {
             eventAnimator.putAll(animators);
         }
@@ -100,7 +100,7 @@ import java.util.Map;
         this.viewTagAnimator = viewTagAnimator;
     }
 
-    /* package */ static class Animator {
+    /* package */ static class Animator implements Choreography.Animator {
         private final float alpha;
         private final float translationX;
         private final float translationY;
@@ -119,7 +119,8 @@ import java.util.Map;
             this.interpolator = interpolator;
         }
 
-        public void animate(View view) {
+        @Override
+        public long animate(View view) {
             view.animate().cancel();
             ViewPropertyAnimator animator = view.animate();
             if (alpha != NO_VALUE) {
@@ -140,6 +141,7 @@ import java.util.Map;
             animator.setDuration(duration);
             animator.setInterpolator(interpolator);
             animator.start();
+            return duration;
         }
     }
 
@@ -147,8 +149,8 @@ import java.util.Map;
         private final ViewParam param;
         private final float bounds;
 
-        private final Animator fromAnimator;
-        private final Animator toAnimator;
+        private final Choreography.Animator fromAnimator;
+        private final Choreography.Animator toAnimator;
 
         private Disco disco;
         private Enum onBackEvent;
@@ -156,7 +158,7 @@ import java.util.Map;
 
         private float prevValue;
 
-        public ViewTagAnimator(Animator fromAnimator, Animator toAnimator, Disco disco, ViewParam param, float bounds, Enum onBackEvent, Enum onForwardEvent) {
+        public ViewTagAnimator(Choreography.Animator fromAnimator, Choreography.Animator toAnimator, Disco disco, ViewParam param, float bounds, Enum onBackEvent, Enum onForwardEvent) {
             this.fromAnimator = fromAnimator;
             this.toAnimator = toAnimator;
             this.disco = disco;
@@ -198,8 +200,8 @@ import java.util.Map;
 
         private final float bounds;
 
-        private final Animator fromAnimator;
-        private final Animator toAnimator;
+        private final Choreography.Animator fromAnimator;
+        private final Choreography.Animator toAnimator;
 
         private Disco disco;
         private Enum onBackEvent;
@@ -207,7 +209,7 @@ import java.util.Map;
 
         private float prevValue;
 
-        public ScrollTagAnimator(int orientation, float bounds, Animator fromAnimator, Animator toAnimator, Disco disco, Enum onBackEvent, Enum onForwardEvent) {
+        public ScrollTagAnimator(int orientation, float bounds, Choreography.Animator fromAnimator, Choreography.Animator toAnimator, Disco disco, Enum onBackEvent, Enum onForwardEvent) {
             this.orientation = orientation;
             this.bounds = bounds;
             this.fromAnimator = fromAnimator;
@@ -242,7 +244,7 @@ import java.util.Map;
     }
 
 
-    /* package */ static class Transformer {
+    /* package */ static class Transformer implements Choreography.Transformer {
         private final float fromAlpha;
         private final TranslatePosition fromTranslationX;
         private final TranslatePosition fromTranslationY;
@@ -270,7 +272,8 @@ import java.util.Map;
             this.interpolator = interpolator;
         }
 
-        void transform(View chaserView, float progress) {
+        @Override
+        public void transform(View chaserView, float progress) {
             progress = interpolator.getInterpolation(progress);
             // set params
             if (fromAlpha != NO_VALUE && toAlpha != NO_VALUE) {
@@ -298,11 +301,11 @@ import java.util.Map;
         private final float fromBounds;
         private final float toBounds;
 
-        private final Transformer transformer;
+        private final Choreography.Transformer transformer;
 
         private float prevProgress;
 
-        public ViewTransformer(Transformer transformer, ViewParam param, float fromBounds, float toBounds) {
+        public ViewTransformer(Choreography.Transformer transformer, ViewParam param, float fromBounds, float toBounds) {
             this.transformer = transformer;
             this.param = param;
             this.fromBounds = fromBounds;
@@ -334,12 +337,12 @@ import java.util.Map;
         private int offset;
         private int topOffset;
 
-        private final Transformer transformer;
+        private final Choreography.Transformer transformer;
 
         private float prevProgress;
 
 
-        public ScrollTransformer(Transformer transformer, int orientation, float multiplier, int offset, int topOffset, boolean stopAtBorder) {
+        public ScrollTransformer(Choreography.Transformer transformer, int orientation, float multiplier, int offset, int topOffset, boolean stopAtBorder) {
             this.transformer = transformer;
             this.orientation = orientation;
             this.multiplier = multiplier;

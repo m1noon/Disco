@@ -8,4 +8,8 @@ import android.view.View;
 public interface ViewChaseChoreography extends Choreography {
 
     boolean playChase(View anchorView, View chaserView);
+
+    interface ViewChaseTransformer {
+        void transform(View chaseView, float progress);
+    }
 }
