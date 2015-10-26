@@ -1,3 +1,4 @@
+[ ![Download](https://api.bintray.com/packages/m1noon/maven/Disco/images/download.svg) ](https://bintray.com/m1noon/maven/Disco/_latestVersion)
 # Disco
 scroll animation library for Android
 
@@ -8,7 +9,7 @@ scroll animation library for Android
 # Gradle
 
 ```
-compile 'com.minoon:disco:0.1.1'
+compile 'com.minoon:disco:0.1.2'
 ```
 
 # How To Use
