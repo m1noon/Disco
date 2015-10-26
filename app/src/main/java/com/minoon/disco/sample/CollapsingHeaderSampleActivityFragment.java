@@ -71,7 +71,7 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
             @Override
             public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
                 if (parent.getChildAdapterPosition(view) == 0) {
-                    outRect.top = dpToPixcel(view.getContext(), 300);
+                    outRect.top = dpToPixel(view.getContext(), 300);
                 }
             }
         });
@@ -91,21 +91,21 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
         mDisco.addScrollObserver(mTitleText, mDisco.getScrollChoreographyBuilder()
                         .onScroll()
                         .stopAtBorder()
-                        .topOffset(dpToPixcel(getActivity(), 4))
+                        .topOffset(dpToPixel(getActivity(), 4))
                         .scaleX(1f, 0.6f)
                         .scaleY(1f, 0.6f)
-                        .translationX(Position.DEFAULT, 0, Position.LEFT, dpToPixcel(getActivity(), 8))
+                        .translationX(Position.DEFAULT, 0, Position.LEFT, dpToPixel(getActivity(), 8))
                         .build()
         );
 
         // set up fab behavior
         mDisco.addScrollObserver(mFab, mDisco.getScrollChoreographyBuilder()
                         .onScroll()
-                        .topOffset(dpToPixcel(getActivity(), 90))
+                        .topOffset(dpToPixel(getActivity(), 90))
                         .build()
         );
         mDisco.addViewObserver(mFab, mFab, mDisco.getViewChaseChoreographyBuilder()
-                        .atTag(ViewParam.TRANSLATION_Y, dpToPixcel(getActivity(), -150))
+                        .atTag(ViewParam.TRANSLATION_Y, dpToPixel(getActivity(), -150))
                         .scaleX(0, 1)
                         .scaleY(0, 1)
                         .duration(200)
@@ -144,7 +144,7 @@ public class CollapsingHeaderSampleActivityFragment extends Fragment {
         mDisco.setUp();
     }
 
-    private int dpToPixcel(Context context, int dp) {
+    private int dpToPixel(Context context, int dp) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         return dp * (metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
     }
